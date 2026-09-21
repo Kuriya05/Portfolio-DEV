@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Terminal & Mission Control | KURIYA.OS</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- LocalForage สำหรับจัดเก็บบน IndexedDB ไม่จำกัดขนาด -->
+  <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Prompt:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+    .font-orbitron { font-family: 'Orbitron', sans-serif; }
+    .font-space { font-family: 'Space Grotesk', sans-serif; }
+    .font-code { font-family: 'Fira Code', monospace; }
+    
+    .cosmic-glass {
+      background: rgba(11, 8, 20, 0.78);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 42, 133, 0.25);
+    }
+    
+    @keyframes radar-sweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .radar-beam {
+      animation: radar-sweep 8s linear infinite;
+    }
+
+    /* แอนิเมชันแสงเรืองของดาวเสาร์สีชมพูเดิม */
+    @keyframes pink-cyber-pulse {
+      0%, 100% { filter: drop-shadow(0 0 15px rgba(255, 42, 133, 0.6)); }
+      50% { filter: drop-shadow(0 0 28px rgba(255, 42, 133, 0.95)); }
+    }
+    .neon-pink-saturn { 
+      animation: pink-cyber-pulse 3.5s ease-in-out infinite; 
+    }
+  </style>
+</head>
+
+<body class="bg-[#05040a] text-white min-h-screen relative overflow-x-hidden antialiased selection:bg-pink-500 selection:text-black">
+
+  <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none -z-20 opacity-40"></canvas>
+  <div class="fixed top-[-10vw] right-[-10vw] w-[45vw] h-[45vw] rounded-full bg-[#ff2a85]/12 blur-[130px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-[-10vw] left-[-10vw] w-[45vw] h-[45vw] rounded-full bg-[#ec4899]/10 blur-[140px] pointer-events-none -z-10"></div>
+
+  <!-- 1. SECURITY AUTH GATE -->
+  <div id="authGate" class="fixed inset-0 z-50 bg-[#05040a]/96 backdrop-blur-2xl flex items-center justify-center p-4">
+    <div class="absolute w-96 h-96 rounded-full border border-pink-500/10 pointer-events-none flex items-center justify-center">
+      <div class="w-80 h-80 rounded-full border border-pink-500/20"></div>
+      <div class="absolute w-full h-full rounded-full border-t-2 border-pink-500/40 radar-beam"></div>
+    </div>
+
+    <div class="w-full max-w-sm rounded-3xl cosmic-glass p-8 border border-pink-500/50 text-center shadow-[0_0_50px_rgba(255,42,133,0.35)] relative z-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-[10px] font-code text-pink-400 mb-5">
+        <i class="fa-solid fa-shield-halved animate-pulse"></i>
+        <span>RESTRICTED TERMINAL // LV.04</span>
+      </div>
+
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-black/90 border border-pink-500/70 flex items-center justify-center text-pink-400 text-2xl shadow-[0_0_25px_rgba(255,42,133,0.4)] mb-4">
+        <i class="fa-solid fa-terminal"></i>
+      </div>
+      
+      <h2 class="font-orbitron font-extrabold text-lg text-white tracking-wider mb-1">COMMAND AUTHORIZATION</h2>
+      <p class="text-xs font-mono text-zinc-400 mb-6">ป้อนรหัสผ่านเพื่อปลดล็อกสิทธิ์ควบคุมระบบ</p>
+      
+      <form onsubmit="handleAdminLogin(event)" class="space-y-4 font-mono">
+        <div class="relative">
+          <input type="password" id="authPassInput" required placeholder="PASSCODE" autocomplete="off" class="w-full px-4 py-3.5 rounded-xl bg-black/90 border border-pink-500/50 text-white text-center text-sm font-code tracking-[0.35em] focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-500">
+        </div>
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-black font-bold font-orbitron text-xs uppercase tracking-wider hover:opacity-95 shadow-[0_0_20px_rgba(255,42,133,0.45)] transition-all">
+          <i class="fa-solid fa-unlock-keyhole mr-1.5"></i> ACCESS COMMAND
+        </button>
+      </form>
+
+      <div class="mt-6 pt-5 border-t border-pink-500/20">
+        <a href="index.html" class="text-xs font-mono text-zinc-400 hover:text-pink-400 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-arrow-left"></i> กลับสู่หน้าสาธารณะ (Main Portfolio)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MAIN ADMIN DASHBOARD -->
+  <div id="adminPanel" class="hidden min-h-screen flex flex-col">
+    <header class="cosmic-glass border-b border-pink-500/20 px-4 sm:px-8 py-3.5 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-black border border-pink-500/60 flex items-center justify-center text-pink-400 shadow-[0_0_12px_rgba(255,42,133,0.3)]">
+            <i class="fa-solid fa-satellite-dish text-sm animate-pulse"></i>
+          </div>
+          <div>
+            <h1 class="font-orbitron font-extrabold text-sm sm:text-base tracking-wider text-white">
+              KURIYA<span class="text-pink-500">.COMMAND</span>
+            </h1>
+            <div class="flex items-center gap-2 text-[10px] font-code text-zinc-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="text-emerald-400 font-bold">ONLINE</span>
+              <span class="text-zinc-600">|</span>
+              <span class="text-pink-400">ADMIN CONTROL CENTER</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3 font-mono">
+          <a href="index.html" target="_blank" class="px-3.5 py-2 rounded-xl bg-black/70 border border-pink-500/30 text-xs text-zinc-300 hover:text-white hover:border-pink-400 transition flex items-center gap-2">
+            <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-pink-400"></i>
+            <span class="hidden sm:inline">ดูหน้าเว็บจริง</span>
+          </a>
+          <button onclick="handleAdminLogout()" class="px-3.5 py-2 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-300 hover:bg-rose-600 hover:text-white transition flex items-center gap-1.5">
+            <i class="fa-solid fa-power-off text-[11px]"></i>
+            <span class="hidden sm:inline">ออกจากระบบ</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+      <!-- Interactive Stats HUD -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono">
+        <div onclick="filterByStatCategory('all')" class="cosmic-glass p-5 rounded-2xl border border-pink-500/30 cursor-pointer hover:border-pink-400 transition group">
+          <div class="flex items-center justify-between text-[10px] text-zinc-400 uppercase tracking-widest mb-2">
+            <span>All Missions</span>
+            <i class="fa-solid fa-layer-group text-pink-500"></i>
+          </div>
+          <div id="statTotal" class="text-2xl sm:text-3xl font-bold text-white font-orbitron">0</div>
+          <div class="text-[10px] text-zinc-500 mt-1 font-code">คลิกเพื่อดูทั้งหมด</div>
+        </div>
+
+        <div onclick="filterByStatCategory('AI & Vision')" class="cosmic-glass p-5 rounded-2xl border border-pink-500/30 cursor-pointer hover:border-pink-400 transition group">
+          <div class="flex items-center justify-between text-[10px] text-pink-400 uppercase tracking-widest mb-2">
+            <span>AI & Vision</span>
+            <i class="fa-solid fa-eye text-pink-400"></i>
+          </div>
+          <div id="statAI" class="text-2xl sm:text-3xl font-bold text-pink-400 font-orbitron">0</div>
+          <div class="text-[10px] text-pink-500/70 mt-1 font-code">โมเดล & ตรวจจับ</div>
+        </div>
+
+        <div onclick="filterByStatCategory('Web Platform')" class="cosmic-glass p-5 rounded-2xl border border-pink-500/30 cursor-pointer hover:border-pink-400 transition group">
+          <div class="flex items-center justify-between text-[10px] text-purple-400 uppercase tracking-widest mb-2">
+            <span>Web Platform</span>
+            <i class="fa-solid fa-network-wired text-purple-400"></i>
+          </div>
+          <div id="statWeb" class="text-2xl sm:text-3xl font-bold text-purple-400 font-orbitron">0</div>
+          <div class="text-[10px] text-purple-400/70 mt-1 font-code">เว็บ & แพลตฟอร์ม</div>
+        </div>
+
+        <div onclick="filterByStatCategory('Algo & Trading')" class="cosmic-glass p-5 rounded-2xl border border-pink-500/30 cursor-pointer hover:border-pink-400 transition group">
+          <div class="flex items-center justify-between text-[10px] text-emerald-400 uppercase tracking-widest mb-2">
+            <span>Algo & Trading</span>
+            <i class="fa-solid fa-chart-line text-emerald-400"></i>
+          </div>
+          <div id="statAlgo" class="text-2xl sm:text-3xl font-bold text-emerald-400 font-orbitron">0</div>
+          <div class="text-[10px] text-emerald-400/70 mt-1 font-code">บอท & ฟินเทค</div>
+        </div>
+      </div>
+
+      <!-- Action & Table Section -->
+      <div class="cosmic-glass rounded-3xl p-6 sm:p-8 border border-pink-500/30 space-y-6 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#ff2a8507_1px,transparent_1px),linear-gradient(to_bottom,#ff2a8507_1px,transparent_1px)] bg-[size:2rem_2rem] pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+          <div class="flex items-center gap-3 flex-1 max-w-md">
+            <div class="relative w-full">
+              <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-pink-500"></i>
+              <input type="text" id="adminSearch" oninput="renderAdminTable()" placeholder="ค้นหาชื่อผลงาน, แท็กเทคโนโลยี..." class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white placeholder-zinc-500 text-xs font-mono focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-500">
+            </div>
+            
+            <select id="adminCategorySelect" onchange="renderAdminTable()" class="px-3 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-zinc-300 text-xs font-mono focus:outline-none focus:border-pink-400">
+              <option value="all">ทุกหมวดหมู่</option>
+              <option value="AI & Vision">AI & Vision</option>
+              <option value="Web Platform">Web Platform</option>
+              <option value="Algo & Trading">Algo & Trading</option>
+              <option value="Tools & Cloud">Tools & Cloud</option>
+            </select>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="exportDataJSON()" class="px-3.5 py-2.5 rounded-xl bg-black/70 border border-pink-500/30 text-zinc-300 hover:text-white text-xs font-mono flex items-center gap-1.5 transition hover:border-pink-400">
+              <i class="fa-solid fa-download text-pink-400 text-xs"></i>
+              <span>Backup JSON</span>
+            </button>
+            <label class="px-3.5 py-2.5 rounded-xl bg-black/70 border border-pink-500/30 text-zinc-300 hover:text-white text-xs font-mono flex items-center gap-1.5 cursor-pointer transition hover:border-pink-400">
+              <i class="fa-solid fa-upload text-pink-400 text-xs"></i>
+              <span>Restore</span>
+              <input type="file" accept=".json" onchange="importDataJSON(event)" class="hidden">
+            </label>
+            <button onclick="openProjectModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-black font-orbitron font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(255,42,133,0.4)] hover:opacity-95 transition">
+              <i class="fa-solid fa-circle-plus"></i>
+              <span>LAUNCH NEW MISSION</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-2xl border border-pink-500/20 relative z-10 bg-black/60">
+          <table class="w-full text-left text-xs font-sans">
+            <thead class="bg-black/90 text-zinc-400 uppercase font-code border-b border-pink-500/20">
+              <tr>
+                <th class="py-3.5 px-4 w-16 text-center">ภาพ</th>
+                <th class="py-3.5 px-4">ชื่อโปรเจกต์ & รายละเอียด</th>
+                <th class="py-3.5 px-4">หมวดหมู่</th>
+                <th class="py-3.5 px-4 hidden md:table-cell">เทคโนโลยีหลัก</th>
+                <th class="py-3.5 px-4 text-center">ลิงก์</th>
+                <th class="py-3.5 px-4 text-right">คำสั่งการ</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody" class="divide-y divide-pink-500/10 font-mono"></tbody>
+          </table>
+        </div>
+
+        <div class="pt-4 border-t border-pink-500/20 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-zinc-500 gap-3 relative z-10">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-database text-pink-400"></i>
+            <span>จัดเก็บบน IndexedDB (High-Capacity Database)</span>
+          </div>
+          <button onclick="resetFactoryData()" class="text-rose-400/80 hover:text-rose-300 underline flex items-center gap-1 transition">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>รีเซ็ตโปรเจกต์ทั้งหมดเป็นค่าตั้งต้น</span>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================
+       3. MODAL จัดการผลงาน (พร้อมดาวเสาร์สีชมพู & ลายแผงวงจรเดิม)
+  ======================================================== -->
+  <div id="projectModal" class="fixed inset-0 z-50 bg-[#05040a]/92 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
+    
+    <!-- แคนวาสจุดใยประสาท AI ใน Modal -->
+    <canvas id="modal-cosmic-dots-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ff2a8510_1px,transparent_1px),linear-gradient(to_bottom,#ff2a8510_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none z-0"></div>
+
+    <!-- ลายแผงวงจรคอมพิวเตอร์เดิม (PCB BUS-01) -->
+    <svg class="absolute bottom-2 left-2 w-72 h-72 sm:w-96 sm:h-96 opacity-40 pointer-events-none text-pink-500 z-0" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.4">
+      <path d="M 10 190 L 60 140 L 115 140 L 145 110 L 195 110" stroke-linecap="round"/>
+      <path d="M 30 195 L 75 150 L 130 150 L 155 125 L 185 125" stroke-linecap="round"/>
+      <circle cx="195" cy="110" r="4.5" class="fill-pink-500 stroke-none animate-ping"/>
+      <circle cx="195" cy="110" r="3" fill="#ffffff" stroke="none"/>
+      <circle cx="185" cy="125" r="2.5" fill="#ff2a85"/>
+      <text x="70" y="135" fill="#ff2a85" font-size="7" font-family="monospace">PCB//BUS-01</text>
+    </svg>
+
+    <!-- ดาวเสาร์สีชมพูนีออนเดิม (CYBER PINK SATURN) -->
+    <div class="absolute top-3 right-3 sm:top-6 sm:right-12 md:right-20 pointer-events-none select-none z-0 neon-pink-saturn">
+      <svg class="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="pinkSaturnSphere" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#ffffff"/><stop offset="20%" stop-color="#ff69b4"/><stop offset="55%" stop-color="#ff2a85"/><stop offset="85%" stop-color="#3d051e"/><stop offset="100%" stop-color="#080208"/>
+          </radialGradient>
+          <linearGradient id="pinkRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff"/><stop offset="35%" stop-color="#ff2a85"/><stop offset="70%" stop-color="#ec4899"/><stop offset="100%" stop-color="#fb7185"/>
+          </linearGradient>
+        </defs>
+        <g transform="rotate(-28 160 160)">
+          <ellipse cx="160" cy="160" rx="146" ry="38" stroke="url(#pinkRingGrad)" stroke-width="2.5" stroke-dasharray="8 5" opacity="0.8"/>
+          <ellipse cx="160" cy="160" rx="128" ry="30" stroke="#ff2a85" stroke-width="3" opacity="0.95"/>
+        </g>
+        <circle cx="160" cy="160" r="62" fill="url(#pinkSaturnSphere)" stroke="#ff2a85" stroke-width="1.8"/>
+        <clipPath id="saturnClip"><circle cx="160" cy="160" r="61"/></clipPath>
+        <g clip-path="url(#saturnClip)">
+          <ellipse cx="160" cy="142" rx="64" ry="12" fill="#ffffff" opacity="0.25"/>
+          <ellipse cx="160" cy="160" rx="64" ry="9" fill="#ff2a85" opacity="0.4"/>
+          <rect x="144" y="144" width="32" height="32" rx="6" fill="#080208" stroke="#ffffff" stroke-width="1.8"/>
+          <circle cx="160" cy="160" r="5" fill="#ff2a85"/><circle cx="160" cy="160" r="2.5" fill="#ffffff"/>
+        </g>
+        <g transform="rotate(-28 160 160)">
+          <path d="M 14 160 A 146 38 0 0 0 306 160" stroke="url(#pinkRingGrad)" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="270" cy="172" r="3.5" fill="#ffffff"/><circle cx="62" cy="170" r="3" fill="#ff2a85"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- กล่องฟอร์ม Modal -->
+    <div class="relative w-full max-w-2xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-pink-500/50 shadow-[0_0_60px_rgba(7,6,12,0.9),0_0_35px_rgba(255,42,133,0.35)] max-h-[92vh] flex flex-col z-10">
+      
+      <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-400 text-xs">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <span id="modalHeaderTitle" class="font-orbitron font-bold text-white text-sm tracking-wider">
+            MISSION CONFIGURATION // เพิ่มผลงานใหม่
+          </span>
+        </div>
+        <button onclick="closeProjectModal()" class="w-8 h-8 rounded-lg bg-black/60 border border-pink-500/30 text-zinc-400 hover:text-white hover:border-pink-400 transition flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <form id="projectForm" onsubmit="handleSaveProject(event)" class="p-6 overflow-y-auto space-y-4 text-xs font-mono">
+        <input type="hidden" id="editProjectId" value="">
+
+        <!-- ช่องใส่รูปภาพผลงาน -->
+        <div class="p-4 rounded-2xl bg-black/60 border border-pink-500/25 space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-pink-400 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-image"></i>
+              <span>ภาพหน้าปกผลงาน (PROJECT COVER IMAGE)</span>
+            </label>
+            <span class="text-[10px] text-zinc-400 font-code">อัปโหลดไฟล์จากเครื่องได้ไม่จำกัด</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+            <div>
+              <label class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-black border border-dashed border-pink-500/40 hover:border-pink-400 text-zinc-300 hover:text-white cursor-pointer transition">
+                <i class="fa-solid fa-cloud-arrow-up text-pink-400 text-sm"></i>
+                <span class="text-[11px]">เลือกไฟล์ภาพจากเครื่อง</span>
+                <input type="file" id="imageFileInput" accept="image/*" onchange="handleImageFileUpload(event)" class="hidden">
+              </label>
+            </div>
+            <div>
+              <input type="url" id="imageUrlInput" oninput="handleImageUrlChange()" placeholder="หรือวางลิงก์รูปภาพ https://..." class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white placeholder-zinc-600 focus:outline-none focus:border-pink-400 text-[11px]">
+            </div>
+          </div>
+
+          <div id="imagePreviewContainer" class="hidden relative rounded-xl overflow-hidden border border-pink-500/40 h-36 bg-black/80">
+            <img id="imagePreview" src="" alt="Cover Preview" class="w-full h-full object-cover">
+            <button type="button" onclick="removeSelectedImage()" class="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-black/80 border border-rose-500/60 text-rose-400 hover:bg-rose-600 hover:text-white text-[10px] transition flex items-center gap-1">
+              <i class="fa-solid fa-trash-can"></i> ลบรูป
+            </button>
+          </div>
+          <input type="hidden" id="finalImageData" value="">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-zinc-300 mb-1.5 uppercase font-bold">ชื่อผลงาน / โปรเจกต์ *</label>
+            <input type="text" id="projTitle" required placeholder="เช่น AI Corn Pest Detection System" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 font-sans text-xs">
+          </div>
+          <div>
+            <label class="block text-zinc-300 mb-1.5 uppercase font-bold">หมวดหมู่ระบบ *</label>
+            <select id="projCategory" class="w-full px-3.5 py-2.5 rounded-xl bg-[#110c1f] border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs">
+              <option value="AI & Vision">AI & Vision (ปัญญาประดิษฐ์ & ตรวจจับ)</option>
+              <option value="Web Platform">Web Platform (เว็บแอปพลิเคชัน)</option>
+              <option value="Algo & Trading">Algo & Trading (บอท & การเงิน)</option>
+              <option value="Tools & Cloud">Tools & Cloud (ซอฟต์แวร์ & เครื่องมือ)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 mb-1.5 uppercase font-bold">คำอธิบายย่อ (SUMMARY) *</label>
+          <textarea id="projSummary" required rows="3" placeholder="ระบุสิ่งที่โปรเจกต์นี้ทำ ประโยชน์ และเทคนิคเบื้องหลัง..." class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 font-sans text-xs leading-relaxed"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 mb-1.5 uppercase font-bold">เทคโนโลยีที่ใช้ (คั่นด้วยเครื่องหมายจุลภาค ,) *</label>
+          <input type="text" id="projTags" required placeholder="เช่น Next.js, Python, YOLOv8, FastAPI, Tailwind" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 font-code text-xs">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-zinc-300 mb-1.5 uppercase font-bold">Live Demo URL</label>
+            <input type="url" id="projDemoUrl" placeholder="https://my-system.vercel.app" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs font-code">
+          </div>
+          <div>
+            <label class="block text-zinc-300 mb-1.5 uppercase font-bold">GitHub Repository URL</label>
+            <input type="url" id="projGithubUrl" placeholder="https://github.com/Kuriya05/project" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs font-code">
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-pink-500/25 flex items-center justify-end gap-3 font-mono">
+          <button type="button" onclick="closeProjectModal()" class="px-4 py-2.5 rounded-xl bg-black/70 border border-pink-500/30 text-zinc-300 hover:text-white text-xs">ยกเลิก</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 text-black font-bold font-orbitron text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(255,42,133,0.4)] hover:opacity-95">
+            <i class="fa-solid fa-floppy-disk mr-1.5"></i> บันทึกข้อมูลภารกิจ
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-black/95 border border-pink-500 text-white px-5 py-3 rounded-2xl text-xs font-mono shadow-[0_0_25px_rgba(255,42,133,0.4)] flex items-center gap-2.5">
+    <i class="fa-solid fa-circle-check text-pink-400"></i>
+    <span id="toastMsg"></span>
+  </div>
+
+  <!-- 4. JAVASCRIPT LOGIC -->
+  <script>
+    const ADMIN_PASS = "210148";
+    
+    localforage.config({
+      name: 'KuriyaCosmicDB',
+      storeName: 'portfolio_store'
+    });
+
+    const projectChannel = new BroadcastChannel('cosmic_projects_sync');
+
+    const defaultProjects = [
+      {
+        id: 'p-cosmic-1',
+        title: 'ระบบตรวจจับโรคข้าวโพดด้วย AI Vision (Corn Pest Eye)',
+        category: 'AI & Vision',
+        summary: 'ตรวจจับและวิเคราะห์โรคใบไหม้ หนอนเจาะลำต้น และอาการขาดธาตุอาหารของข้าวโพดแบบ Real-time ด้วยโมเดล YOLOv8',
+        tags: ['YOLOv8', 'Python', 'FastAPI', 'OpenCV'],
+        demoUrl: '#',
+        githubUrl: 'https://github.com/Kuriya05',
+        imageUrl: ''
+      },
+      {
+        id: 'p-cosmic-2',
+        title: 'Cosmic Gold & Forex Algorithmic Bot',
+        category: 'Algo & Trading',
+        summary: 'บอทวิเคราะห์แนวรับ-แนวต้านอัตโนมัติบน XAUUSD พร้อมเชื่อมต่อ MetaTrader 5 ส่งแจ้งเตือน Real-time',
+        tags: ['Python', 'MetaTrader 5', 'Algo Engine'],
+        demoUrl: '#',
+        githubUrl: 'https://github.com/Kuriya05',
+        imageUrl: ''
+      },
+      {
+        id: 'p-cosmic-3',
+        title: 'Quantum Next-Gen E-Commerce Portal',
+        category: 'Web Platform',
+        summary: 'แพลตฟอร์มพาณิชย์อิเล็กทรอนิกส์สไตล์ Modern Dark พร้อมแผงควบคุมแอดมินและระบบชำระเงิน',
+        tags: ['Next.js 14', 'React', 'Tailwind', 'PostgreSQL'],
+        demoUrl: '#',
+        githubUrl: 'https://github.com/Kuriya05',
+        imageUrl: ''
+      }
+    ];
+
+    let projects = [];
+
+    // แคนวาส HUD พื้นหลังใหญ่
+    (function initHudCanvas() {
+      const c = document.getElementById('bg-canvas');
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      let w = c.width = window.innerWidth;
+      let h = c.height = window.innerHeight;
+
+      let nodes = [];
+      for (let i = 0; i < 45; i++) {
+        nodes.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          r: Math.random() * 1.5 + 1
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        w = c.width = window.innerWidth;
+        h = c.height = window.innerHeight;
+      });
+
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        nodes.forEach((n, i) => {
+          n.x += n.vx;
+          n.y += n.vy;
+          if (n.x < 0) n.x = w;
+          if (n.x > w) n.x = 0;
+          if (n.y < 0) n.y = h;
+          if (n.y > h) n.y = 0;
+
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 42, 133, 0.6)';
+          ctx.fill();
+
+          for (let j = i + 1; j < nodes.length; j++) {
+            const n2 = nodes[j];
+            const dist = Math.hypot(n.x - n2.x, n.y - n2.y);
+            if (dist < 100) {
+              ctx.beginPath();
+              ctx.moveTo(n.x, n.y);
+              ctx.lineTo(n2.x, n2.y);
+              ctx.strokeStyle = `rgba(255, 42, 133, ${0.2 * (1 - dist / 100)})`;
+              ctx.stroke();
+            }
+          }
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // แคนวาสจุดอนุภาคใยประสาทภายใน Modal เพิ่มผลงาน
+    let renderModalDots = null;
+    (function initModalDotsCanvas() {
+      const c = document.getElementById('modal-cosmic-dots-canvas');
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      let dots = [];
+
+      function setup() {
+        c.width = c.parentElement ? c.parentElement.clientWidth : window.innerWidth;
+        c.height = c.parentElement ? c.parentElement.clientHeight : window.innerHeight;
+        dots = [];
+        for (let i = 0; i < 40; i++) {
+          dots.push({
+            x: Math.random() * c.width,
+            y: Math.random() * c.height,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.4,
+            r: Math.random() * 1.6 + 0.8,
+            alpha: Math.random() * 0.6 + 0.2
+          });
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        dots.forEach((d, i) => {
+          d.x += d.vx;
+          d.y += d.vy;
+          if (d.x < 0) d.x = c.width;
+          if (d.x > c.width) d.x = 0;
+          if (d.y < 0) d.y = c.height;
+          if (d.y > c.height) d.y = 0;
+
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 42, 133, ${d.alpha})`;
+          ctx.fill();
+
+          for (let j = i + 1; j < dots.length; j++) {
+            const d2 = dots[j];
+            const dist = Math.hypot(d.x - d2.x, d.y - d2.y);
+            if (dist < 80) {
+              ctx.beginPath();
+              ctx.moveTo(d.x, d.y);
+              ctx.lineTo(d2.x, d2.y);
+              ctx.strokeStyle = `rgba(255, 42, 133, ${(1 - dist / 80) * 0.2})`;
+              ctx.stroke();
+            }
+          }
+        });
+        requestAnimationFrame(draw);
+      }
+
+      renderModalDots = function() {
+        setup();
+        draw();
+      };
+      window.addEventListener('resize', setup);
+    })();
+
+    function checkAuth() {
+      if (sessionStorage.getItem('is_cosmic_admin') === 'true') {
+        document.getElementById('authGate').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        loadProjects();
+      } else {
+        document.getElementById('authGate').classList.remove('hidden');
+        document.getElementById('adminPanel').classList.add('hidden');
+      }
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const val = document.getElementById('authPassInput').value;
+      if (val === ADMIN_PASS) {
+        sessionStorage.setItem('is_cosmic_admin', 'true');
+        checkAuth();
+        showToast('🔓 เข้าสู่ศูนย์บัญชาการสำเร็จ!');
+      } else {
+        showToast('❌ รหัสผ่านไม่ถูกต้อง');
+        document.getElementById('authPassInput').value = '';
+      }
+    }
+
+    function handleAdminLogout() {
+      sessionStorage.removeItem('is_cosmic_admin');
+      checkAuth();
+    }
+
+    async function loadProjects() {
+      try {
+        let stored = await localforage.getItem('cosmic_projects_store');
+        if (!stored || !Array.isArray(stored) || stored.length === 0) {
+          const legacy = localStorage.getItem('cosmic_projects_store');
+          if (legacy) {
+            try { stored = JSON.parse(legacy); } catch(e) {}
+          }
+        }
+        projects = Array.isArray(stored) && stored.length > 0 ? stored : [...defaultProjects];
+        await localforage.setItem('cosmic_projects_store', projects);
+      } catch (e) {
+        projects = [...defaultProjects];
+      }
+      renderAdminTable();
+      updateDashboardStats();
+    }
+
+    async function saveProjects() {
+      try {
+        await localforage.setItem('cosmic_projects_store', projects);
+        projectChannel.postMessage({ type: 'PROJECTS_UPDATED' });
+        renderAdminTable();
+        updateDashboardStats();
+        return true;
+      } catch (err) {
+        showToast('❌ บันทึกข้อมูลไม่สำเร็จ');
+        return false;
+      }
+    }
+
+    function updateDashboardStats() {
+      if (!Array.isArray(projects)) projects = [];
+      document.getElementById('statTotal').textContent = projects.length;
+      document.getElementById('statAI').textContent = projects.filter(p => p.category === 'AI & Vision').length;
+      document.getElementById('statWeb').textContent = projects.filter(p => p.category === 'Web Platform').length;
+      document.getElementById('statAlgo').textContent = projects.filter(p => p.category === 'Algo & Trading').length;
+    }
+
+    function filterByStatCategory(cat) {
+      const sel = document.getElementById('adminCategorySelect');
+      sel.value = cat;
+      renderAdminTable();
+    }
+
+    function renderAdminTable() {
+      const tbody = document.getElementById('adminTableBody');
+      const search = (document.getElementById('adminSearch').value || '').toLowerCase();
+      const catFilter = document.getElementById('adminCategorySelect').value;
+      tbody.innerHTML = '';
+
+      if (!Array.isArray(projects)) projects = [];
+
+      const filtered = projects.filter(p => {
+        const titleMatch = (p.title || '').toLowerCase().includes(search);
+        const tagsMatch = Array.isArray(p.tags) && p.tags.join(', ').toLowerCase().includes(search);
+        const matchCat = catFilter === 'all' || p.category === catFilter;
+        return (titleMatch || tagsMatch) && matchCat;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-zinc-500 font-mono">ไม่พบข้อมูลผลงานในระบบ</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-white/[0.02] transition';
+        
+        const thumbHtml = p.imageUrl 
+          ? `<img src="${p.imageUrl}" class="w-10 h-10 rounded-lg object-cover border border-pink-500/40">`
+          : `<div class="w-10 h-10 rounded-lg bg-black border border-pink-500/20 text-pink-400 flex items-center justify-center text-xs"><i class="fa-solid fa-cube"></i></div>`;
+
+        const tagsHtml = (p.tags || []).slice(0, 3).map(t => 
+          `<span class="px-2 py-0.5 rounded bg-black border border-pink-500/20 text-[10px] text-zinc-300 font-code">${t}</span>`
+        ).join('');
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center">${thumbHtml}</td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-white font-sans text-xs">${p.title || 'Untitled'}</div>
+            <div class="text-[11px] text-zinc-400 line-clamp-1 font-sans font-light">${p.summary || ''}</div>
+          </td>
+          <td class="py-3 px-4 font-mono text-[11px] text-pink-400 whitespace-nowrap">${p.category || 'General'}</td>
+          <td class="py-3 px-4 hidden md:table-cell">
+            <div class="flex flex-wrap gap-1">${tagsHtml}</div>
+          </td>
+          <td class="py-3 px-4 text-center font-mono text-zinc-400 whitespace-nowrap">
+            ${p.demoUrl && p.demoUrl !== '#' ? `<a href="${p.demoUrl}" target="_blank" class="hover:text-pink-400 mr-2" title="Live Demo"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+            ${p.githubUrl && p.githubUrl !== '#' ? `<a href="${p.githubUrl}" target="_blank" class="hover:text-pink-400" title="GitHub Repo"><i class="fa-brands fa-github"></i></a>` : ''}
+          </td>
+          <td class="py-3 px-4 text-right whitespace-nowrap">
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="openEditProjectModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-pink-500/10 border border-pink-500/30 text-pink-300 hover:bg-pink-500 hover:text-black transition text-xs" title="แก้ไข">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="cloneProject('${p.id}')" class="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:bg-purple-500 hover:text-black transition text-xs" title="ทำสำเนา">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+              <button onclick="deleteProject('${p.id}')" class="px-2.5 py-1 rounded-lg bg-rose-950/40 border border-rose-500/40 text-rose-400 hover:bg-rose-600 hover:text-white transition text-xs" title="ลบ">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function handleImageFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        setImagePreview(evt.target.result);
+        showToast('✨ อัปโหลดรูปภาพพร้อมบันทึก!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleImageUrlChange() {
+      const url = document.getElementById('imageUrlInput').value.trim();
+      if (url) setImagePreview(url);
+    }
+
+    function setImagePreview(src) {
+      document.getElementById('finalImageData').value = src;
+      document.getElementById('imagePreview').src = src;
+      document.getElementById('imagePreviewContainer').classList.remove('hidden');
+    }
+
+    function removeSelectedImage() {
+      document.getElementById('finalImageData').value = '';
+      document.getElementById('imageUrlInput').value = '';
+      document.getElementById('imageFileInput').value = '';
+      document.getElementById('imagePreviewContainer').classList.add('hidden');
+    }
+
+    function openProjectModal() {
+      document.getElementById('projectForm').reset();
+      document.getElementById('editProjectId').value = '';
+      removeSelectedImage();
+      document.getElementById('modalHeaderTitle').textContent = 'MISSION CONFIGURATION // เพิ่มผลงานใหม่';
+      
+      document.getElementById('projectModal').classList.remove('hidden');
+      document.getElementById('projectModal').classList.add('flex');
+      
+      if (renderModalDots) renderModalDots();
+    }
+
+    function openEditProjectModal(id) {
+      const p = projects.find(item => String(item.id) === String(id));
+      if (!p) return;
+
+      document.getElementById('editProjectId').value = p.id;
+      document.getElementById('projTitle').value = p.title || '';
+      document.getElementById('projCategory').value = p.category || 'AI & Vision';
+      document.getElementById('projSummary').value = p.summary || '';
+      document.getElementById('projTags').value = (p.tags || []).join(', ');
+      document.getElementById('projDemoUrl').value = (p.demoUrl && p.demoUrl !== '#') ? p.demoUrl : '';
+      document.getElementById('projGithubUrl').value = (p.githubUrl && p.githubUrl !== '#') ? p.githubUrl : '';
+
+      if (p.imageUrl) {
+        setImagePreview(p.imageUrl);
+      } else {
+        removeSelectedImage();
+      }
+
+      document.getElementById('modalHeaderTitle').textContent = `MISSION CONFIGURATION // EDIT: ${p.title}`;
+      document.getElementById('projectModal').classList.remove('hidden');
+      document.getElementById('projectModal').classList.add('flex');
+      
+      if (renderModalDots) renderModalDots();
+    }
+
+    function closeProjectModal() {
+      document.getElementById('projectModal').classList.add('hidden');
+      document.getElementById('projectModal').classList.remove('flex');
+      document.getElementById('projectForm').reset();
+      removeSelectedImage();
+    }
+
+    async function handleSaveProject(e) {
+      e.preventDefault();
+
+      if (!Array.isArray(projects)) projects = [];
+
+      const editId = document.getElementById('editProjectId').value;
+      const title = document.getElementById('projTitle').value.trim();
+      const category = document.getElementById('projCategory').value;
+      const summary = document.getElementById('projSummary').value.trim();
+      const tags = document.getElementById('projTags').value.split(',').map(s => s.trim()).filter(Boolean);
+      const demoUrl = document.getElementById('projDemoUrl').value.trim() || '#';
+      const githubUrl = document.getElementById('projGithubUrl').value.trim() || '#';
+      const imageUrl = document.getElementById('finalImageData').value || '';
+
+      if (!title || !summary) {
+        showToast('⚠️ กรุณากรอกชื่อและคำอธิบายผลงาน');
+        return;
+      }
+
+      if (editId) {
+        const index = projects.findIndex(p => String(p.id) === String(editId));
+        if (index !== -1) {
+          projects[index] = {
+            ...projects[index],
+            title, category, summary, tags, demoUrl, githubUrl, imageUrl
+          };
+          const ok = await saveProjects();
+          if (ok) {
+            showToast('💾 อัปเดตข้อมูลภารกิจเรียบร้อย!');
+            closeProjectModal();
+          }
+        }
+      } else {
+        const newProj = {
+          id: 'p-' + Date.now(),
+          title, category, summary, tags, demoUrl, githubUrl, imageUrl
+        };
+        projects.unshift(newProj);
+        const ok = await saveProjects();
+        if (ok) {
+          showToast('🚀 ส่งผลงานใหม่ขึ้นสู่วงโคจรแล้ว!');
+          closeProjectModal();
+        }
+      }
+    }
+
+    async function cloneProject(id) {
+      const p = projects.find(item => String(item.id) === String(id));
+      if (!p) return;
+      const cloned = {
+        ...p,
+        id: 'p-' + Date.now(),
+        title: p.title + ' (Copy)'
+      };
+      projects.unshift(cloned);
+      await saveProjects();
+      showToast('📋 คัดลอกผลงานเรียบร้อย');
+    }
+
+    async function deleteProject(id) {
+      if (confirm('ยืนยันการลบผลงานนี้ออกจากระบบอย่างถาวร?')) {
+        projects = projects.filter(p => String(p.id) !== String(id));
+        await saveProjects();
+        showToast('🗑 ลบข้อมูลเรียบร้อยแล้ว');
+      }
+    }
+
+    function exportDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `kuriya-portfolio-backup-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      showToast('📦 บันทึกไฟล์สำรอง JSON สำเร็จ');
+    }
+
+    function importDataJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (Array.isArray(parsed)) {
+            projects = parsed;
+            await saveProjects();
+            showToast('✅ กู้คืนข้อมูลเข้าระบบเรียบร้อยแล้ว!');
+          }
+        } catch(err) {
+          showToast('❌ รูปแบบไฟล์ JSON ไม่ถูกต้อง');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    async function resetFactoryData() {
+      if (confirm('ต้องการรีเซ็ตข้อมูลผลงานกลับเป็นค่าเริ่มต้นหรือไม่?')) {
+        projects = [...defaultProjects];
+        await saveProjects();
+        showToast('🔄 รีเซ็ตข้อมูลกลับสู่ค่าเริ่มต้นเรียบร้อย');
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.remove('translate-y-24', 'opacity-0');
+      t.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        t.classList.remove('translate-y-0', 'opacity-100');
+        t.classList.add('translate-y-24', 'opacity-0');
+      }, 3000);
+    }
+
+    window.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+</body>
+</html>
