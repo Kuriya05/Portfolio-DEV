@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cosmic Portfolio | คลังผลงานอวกาศส่วนตัว</title>
+  <title>Cosmic Portfolio | KURIYA THATHE</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- LocalForage CDN สำหรับดึงข้อมูลและรูปภาพจาก Admin โดยตรง -->
+  <!-- LocalForage สำหรับเชื่อมต่อ IndexedDB ความจุสูง -->
   <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 
   <!-- Google Fonts: Space Grotesk, Prompt & Orbitron -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Prompt:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Prompt:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <!-- FontAwesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
@@ -26,6 +26,7 @@
             sans: ['Prompt', 'sans-serif'],
             space: ['Space Grotesk', 'sans-serif'],
             orbitron: ['Orbitron', 'sans-serif'],
+            code: ['Fira Code', 'monospace']
           },
           colors: {
             cosmic: {
@@ -45,20 +46,10 @@
   </script>
 
   <style>
-    /* Custom Scrollbar & Cosmic Atmosphere */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #07060c;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #ff2a85;
-      border-radius: 9999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #f43f5e;
-    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #07060c; }
+    ::-webkit-scrollbar-thumb { background: #ff2a85; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #f43f5e; }
 
     .cosmic-glass {
       background: rgba(13, 11, 23, 0.72);
@@ -66,147 +57,120 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 42, 133, 0.2);
     }
-
     .cosmic-glass:hover {
       border-color: rgba(255, 42, 133, 0.55);
       box-shadow: 0 0 25px -5px rgba(255, 42, 133, 0.3);
     }
+    .pink-glow { box-shadow: 0 0 35px -5px rgba(255, 42, 133, 0.45); }
+    .pink-text-glow { text-shadow: 0 0 16px rgba(255, 42, 133, 0.65); }
 
-    .pink-glow {
-      box-shadow: 0 0 35px -5px rgba(255, 42, 133, 0.45);
-    }
-
-    .pink-text-glow {
-      text-shadow: 0 0 16px rgba(255, 42, 133, 0.65);
-    }
-
-    /* Orbit animation */
     @keyframes spin-slow {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
-    .animate-orbit {
-      animation: spin-slow 22s linear infinite;
-    }
-    .animate-orbit-reverse {
-      animation: spin-slow 30s linear infinite reverse;
-    }
+    .animate-orbit { animation: spin-slow 22s linear infinite; }
+    .animate-orbit-reverse { animation: spin-slow 30s linear infinite reverse; }
 
-    /* Star Canvas Layer เดิม */
     #space-canvas {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
       z-index: -20;
       pointer-events: none;
     }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 
 <body class="bg-[#07060c] text-white font-sans antialiased selection:bg-[#ff2a85] selection:text-white min-h-screen relative overflow-x-hidden">
 
-  <!-- 1. Interactive Space Starfield Background เดิม (ดวงดาวกระพริบ + ดาวตก) -->
+  <!-- Canvases -->
   <canvas id="space-canvas"></canvas>
-
-  <!-- 2. แคนวาสจุดฝุ่นดาว & โครงข่ายใยประสาท AI ลอยซ้อนทับกัน (Cosmic Neural Dust) -->
   <canvas id="cosmic-dots-canvas" style="position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -15;"></canvas>
 
-  <!-- Ambient Pink Nebula Glow Overlays เดิม -->
+  <!-- Ambient Glow -->
   <div class="fixed top-[-10vw] left-[-10vw] w-[45vw] h-[45vw] rounded-full bg-gradient-to-br from-[#ff2a85]/15 to-transparent blur-[120px] pointer-events-none -z-10"></div>
   <div class="fixed bottom-[-15vw] right-[-10vw] w-[50vw] h-[50vw] rounded-full bg-gradient-to-tl from-[#ec4899]/15 via-[#be185d]/10 to-transparent blur-[140px] pointer-events-none -z-10"></div>
-  <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35vw] h-[35vw] rounded-full bg-fuchsia-600/5 blur-[150px] pointer-events-none -z-10"></div>
 
-  <!-- ========================================================
-       แถบนำทางด้านบน (CYBER HUD FLOATING NAVBAR)
-  ======================================================== -->
-  <nav class="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-[#07060c]/80 border-b border-pink-500/20 px-4 sm:px-8 py-3 transition-all duration-300">
-    
+  <!-- NAVBAR -->
+  <nav class="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-[#07060c]/85 border-b border-pink-500/20 px-3 sm:px-6 lg:px-8 py-2.5 transition-all duration-300">
     <div class="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-pink-500/50 to-transparent"></div>
 
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      
-      <!-- ฝั่งซ้าย: Brand Identity Logo -->
-      <a href="#home" class="flex items-center space-x-3 group relative">
-        <div class="relative w-10 h-10 rounded-xl bg-black border border-pink-500/60 p-[2px] transition-transform duration-300 group-hover:scale-110 flex items-center justify-center shadow-[0_0_15px_rgba(255,42,133,0.4)]">
-          <i class="fa-solid fa-shuttle-space text-pink-400 text-lg group-hover:rotate-12 transition-transform"></i>
-          <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-pink-400 animate-ping"></span>
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <!-- Brand Identity Logo -->
+      <a href="#home" class="flex items-center space-x-2.5 group shrink-0">
+        <div class="relative w-9 h-9 rounded-xl bg-black border border-pink-500/60 p-[2px] transition-transform duration-300 group-hover:scale-105 flex items-center justify-center shadow-[0_0_12px_rgba(255,42,133,0.35)]">
+          <i class="fa-solid fa-shuttle-space text-pink-400 text-base group-hover:rotate-12 transition-transform"></i>
+          <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-pink-400 animate-ping"></span>
         </div>
         <div>
-          <div class="font-orbitron font-extrabold tracking-wider text-base bg-gradient-to-r from-white via-pink-100 to-pink-500 bg-clip-text text-transparent group-hover:text-pink-300 transition-colors">
+          <div class="font-orbitron font-extrabold tracking-wider text-sm sm:text-base bg-gradient-to-r from-white via-pink-100 to-pink-500 bg-clip-text text-transparent group-hover:text-pink-300 transition-colors leading-none">
             KURIYA<span class="text-pink-500 font-mono">.OS</span>
           </div>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 mt-0.5">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-[9px] font-mono tracking-widest uppercase text-pink-400/80 block">Cosmic CS Architect</span>
+            <span class="text-[8px] sm:text-[9px] font-mono tracking-widest uppercase text-pink-400/80 block">Cosmic CS</span>
           </div>
         </div>
       </a>
 
-      <!-- ตรงกลาง: Desktop Navigation (แคปซูล Cyber Floating Capsule) -->
-      <div class="hidden md:flex items-center px-4 py-1.5 rounded-full bg-black/60 border border-pink-500/25 shadow-[inset_0_0_15px_rgba(255,42,133,0.1)] text-xs font-space uppercase tracking-widest space-x-1">
-        <a href="#home" class="px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/15 hover:shadow-[0_0_10px_rgba(255,42,133,0.3)] transition-all">
-          Overview
-        </a>
-        <a href="#projects" class="px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/15 hover:shadow-[0_0_10px_rgba(255,42,133,0.3)] transition-all">
-          Project Nebula
-        </a>
-        <a href="#skills" class="px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/15 hover:shadow-[0_0_10px_rgba(255,42,133,0.3)] transition-all">
-          Constellation
-        </a>
-        <a href="#contact" class="px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/15 hover:shadow-[0_0_10px_rgba(255,42,133,0.3)] transition-all">
-          Transmission
-        </a>
+      <!-- Desktop Navigation -->
+      <div class="hidden lg:flex items-center px-3 py-1.5 rounded-full bg-black/75 border border-pink-500/30 shadow-[inset_0_0_18px_rgba(255,42,133,0.15)] text-xs xl:text-[13px] font-space font-medium uppercase tracking-wider space-x-1">
+        <a href="#home" class="px-3.5 xl:px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/20 hover:shadow-[0_0_12px_rgba(255,42,133,0.35)] transition-all">Overview</a>
+        <a href="#projects" class="px-3.5 xl:px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/20 hover:shadow-[0_0_12px_rgba(255,42,133,0.35)] transition-all">Projects</a>
+        <a href="#skills" class="px-3.5 xl:px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/20 hover:shadow-[0_0_12px_rgba(255,42,133,0.35)] transition-all">Skills</a>
+        <a href="#certificates" class="px-3.5 xl:px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/20 hover:shadow-[0_0_12px_rgba(255,42,133,0.35)] transition-all">Certificates</a>
+        <a href="#activities" class="px-3.5 xl:px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/20 hover:shadow-[0_0_12px_rgba(255,42,133,0.35)] transition-all">Activities</a>
+        <a href="#contact" class="px-3.5 xl:px-4 py-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-pink-500/20 hover:shadow-[0_0_12px_rgba(255,42,133,0.35)] transition-all">Contact</a>
       </div>
 
-      <!-- ฝั่งขวา: Status Command Pill & Quick Action -->
-      <div class="hidden md:flex items-center space-x-3 font-mono">
-        <div class="px-3.5 py-1.5 rounded-xl bg-black/80 border border-pink-500/30 text-[11px] text-pink-300 flex items-center gap-2 shadow-[0_0_12px_rgba(255,42,133,0.2)]">
+      <!-- Right Command Pill -->
+      <div class="hidden md:flex items-center space-x-2.5 font-mono shrink-0">
+        <button onclick="openProfileModal()" class="px-3 py-1.5 rounded-xl bg-pink-500/15 border border-pink-500/40 text-[11px] text-pink-300 hover:bg-pink-500 hover:text-black transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,42,133,0.2)]">
+          <i class="fa-solid fa-id-card-clip"></i>
+          <span>PROFILE</span>
+        </button>
+        <div class="px-3.5 py-1.5 rounded-xl bg-black/80 border border-pink-500/30 text-[10px] xl:text-[11px] text-pink-300 flex items-center gap-2 shadow-[0_0_10px_rgba(255,42,133,0.15)]">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
           </span>
-          <span class="tracking-widest">SYS.NODE // ONLINE</span>
+          <span class="tracking-wider">SYS.ONLINE</span>
         </div>
-
-        <a href="#contact" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-pink-500/20 to-rose-500/20 hover:from-pink-500 hover:to-rose-600 border border-pink-500/50 text-pink-300 hover:text-black transition-all duration-300 text-xs font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,42,133,0.25)] hover:shadow-[0_0_20px_rgba(255,42,133,0.6)]">
-          <i class="fa-solid fa-satellite-dish text-[11px]"></i>
-          <span>TRANSMIT</span>
+        <a href="admin.html" target="_blank" class="px-3 py-1.5 rounded-xl bg-black/80 border border-pink-500/30 text-xs text-zinc-300 hover:text-white hover:border-pink-400 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-lock text-[11px] text-pink-400"></i>
+          <span>ADMIN</span>
         </a>
       </div>
 
-      <!-- Mobile Hamburger Button -->
-      <div class="flex md:hidden items-center space-x-2">
-        <div class="px-2.5 py-1 rounded-lg bg-black/80 border border-pink-500/30 text-[10px] font-mono text-pink-400 flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>
-          <span>ONLINE</span>
-        </div>
-        <button id="mobileMenuBtn" class="text-zinc-300 hover:text-pink-400 p-2 focus:outline-none" aria-label="Toggle menu">
-          <i class="fa-solid fa-bars text-xl"></i>
+      <!-- Mobile Button -->
+      <div class="flex md:hidden items-center space-x-1.5">
+        <button onclick="openProfileModal()" class="px-2.5 py-1 rounded-lg bg-pink-500/15 border border-pink-500/30 text-[10px] font-mono text-pink-300 flex items-center gap-1">
+          <i class="fa-solid fa-user-astronaut text-[10px]"></i>
+          <span>PROFILE</span>
+        </button>
+        <button id="mobileMenuBtn" class="text-zinc-300 hover:text-pink-400 p-1.5 focus:outline-none">
+          <i class="fa-solid fa-bars text-lg"></i>
         </button>
       </div>
-
     </div>
 
-    <!-- Mobile Dropdown Menu -->
-    <div id="mobileMenu" class="hidden md:hidden pt-4 pb-2 border-t border-pink-500/20 mt-3 space-y-2 text-xs font-space uppercase tracking-wider">
-      <a href="#home" onclick="closeMobileMenu()" class="block px-3 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-pink-500/10">Overview (หน้าแรก)</a>
-      <a href="#projects" onclick="closeMobileMenu()" class="block px-3 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-pink-500/10">Project Nebula (ผลงาน)</a>
-      <a href="#skills" onclick="closeMobileMenu()" class="block px-3 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-pink-500/10">Constellation (ทักษะ)</a>
-      <a href="#contact" onclick="closeMobileMenu()" class="block px-3 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-pink-500/10">Transmission (ติดต่อ)</a>
+    <!-- Mobile Dropdown -->
+    <div id="mobileMenu" class="hidden md:hidden pt-3 pb-1 border-t border-pink-500/20 mt-2 space-y-1 text-xs font-space uppercase tracking-wider">
+      <a href="#home" onclick="closeMobileMenu()" class="block px-3 py-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-pink-500/10">Overview</a>
+      <a href="#projects" onclick="closeMobileMenu()" class="block px-3 py-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-pink-500/10">Projects</a>
+      <a href="#skills" onclick="closeMobileMenu()" class="block px-3 py-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-pink-500/10">Skills</a>
+      <a href="#certificates" onclick="closeMobileMenu()" class="block px-3 py-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-pink-500/10">Certificates</a>
+      <a href="#activities" onclick="closeMobileMenu()" class="block px-3 py-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-pink-500/10">Activities</a>
+      <a href="#contact" onclick="closeMobileMenu()" class="block px-3 py-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-pink-500/10">Contact</a>
     </div>
   </nav>
 
-  <!-- ========================================================
-       หน้าแรก (HERO SECTION)
-  ======================================================== -->
+  <!-- HERO SECTION -->
   <section id="home" class="pt-36 pb-20 md:pt-44 md:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
     <div class="flex flex-col-reverse lg:flex-row items-center justify-between gap-14">
-      
-      <!-- Headline & Mission Briefing -->
       <div class="flex-1 text-center lg:text-left space-y-6">
-        
         <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black/60 border border-pink-500/40 text-xs font-mono text-pink-300 shadow-[0_0_15px_rgba(255,42,133,0.2)]">
           <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
           <span class="tracking-widest uppercase">Deep Core System // Active</span>
@@ -223,35 +187,24 @@
           ยินดีต้อนรับสู่สถานีผลงานของนักศึกษา Computer Science รวบรวมโปรเจกต์พัฒนาระบบ Full-Stack, นวัตกรรม AI Vision, อัลกอริทึมการเงิน และโซลูชันซอฟต์แวร์ที่พร้อมใช้งานจริง
         </p>
 
-        <!-- CTA Action Buttons -->
         <div class="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-4 font-mono">
           <a href="#projects" class="group relative px-6 py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-black font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_25px_rgba(255,42,133,0.45)] hover:shadow-[0_0_35px_rgba(255,42,133,0.8)] hover:scale-[1.03] active:scale-95 flex items-center gap-3 overflow-hidden">
-            <span class="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-all duration-700 group-hover:left-[100%] pointer-events-none"></span>
             <span class="px-2 py-0.5 rounded-md bg-black/20 text-black font-extrabold text-[10px] tracking-tight">./EXEC</span>
             <span class="font-orbitron font-extrabold">สำรวจคลังผลงาน</span>
             <i class="fa-solid fa-meteor text-sm transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"></i>
           </a>
 
-          <a href="#contact" class="group relative px-6 py-3.5 rounded-2xl bg-black/85 border border-pink-500/40 hover:border-pink-400 text-zinc-200 hover:text-white text-xs uppercase tracking-wider transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,42,133,0.35)] hover:scale-[1.03] active:scale-95 flex items-center gap-2.5 hover:bg-pink-950/30">
-            <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
-            </span>
-            <span class="text-pink-400 font-bold">&gt;</span>
-            <span class="font-sans font-medium">ส่งคลื่นสัญญาณ</span>
-            <span class="text-[10px] text-pink-400/70 font-mono lowercase tracking-normal">(contact)</span>
-            <i class="fa-solid fa-satellite-dish text-pink-400 text-xs transition-transform duration-300 group-hover:rotate-45 ml-0.5"></i>
-          </a>
+          <button onclick="openProfileModal()" class="group relative px-6 py-3.5 rounded-2xl bg-black/85 border border-pink-500/40 hover:border-pink-400 text-zinc-200 hover:text-white text-xs uppercase tracking-wider transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,42,133,0.35)] hover:scale-[1.03] active:scale-95 flex items-center gap-2.5 hover:bg-pink-950/30">
+            <i class="fa-solid fa-id-badge text-pink-400"></i>
+            <span class="font-sans font-medium">ดูประวัติส่วนตัว</span>
+            <span class="text-[10px] text-pink-400/70 font-mono lowercase">(dossier)</span>
+          </button>
         </div>
 
-        <!-- Social Space Feeds -->
         <div class="flex items-center justify-center lg:justify-start gap-6 pt-4 text-zinc-400">
           <span class="text-xs font-mono tracking-widest text-pink-500 uppercase">Orbit Channels:</span>
-          <a href="https://github.com/Kuriya05" target="_blank" rel="noopener noreferrer" class="hover:text-pink-400 transition hover:scale-110" title="GitHub">
+          <a href="https://github.com/Kuriya05" target="_blank" class="hover:text-pink-400 transition hover:scale-110" title="GitHub">
             <i class="fa-brands fa-github text-xl"></i>
-          </a>
-          <a href="https://linkedin.com/in/kuriya-thathe" target="_blank" rel="noopener noreferrer" class="hover:text-pink-400 transition hover:scale-110" title="LinkedIn">
-            <i class="fa-brands fa-linkedin text-xl"></i>
           </a>
           <button onclick="copyMyEmail()" class="hover:text-pink-400 transition flex items-center gap-2 text-xs font-mono" title="Click to copy orbital transmission email">
             <i class="fa-regular fa-clone"></i>
@@ -260,22 +213,21 @@
         </div>
       </div>
 
-      <!-- Orbital Radar Graphic -->
+      <!-- Orbital Radar Graphic & Profile Card -->
       <div class="flex-1 flex justify-center relative">
         <div class="relative w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
-          
           <div class="absolute inset-0 rounded-full border border-pink-500/20 border-dashed animate-orbit pointer-events-none">
             <div class="w-3.5 h-3.5 rounded-full bg-pink-400 shadow-[0_0_12px_#ff2a85] absolute -top-1.5 left-1/2 -translate-x-1/2"></div>
           </div>
-
           <div class="absolute inset-8 rounded-full border border-pink-500/30 animate-orbit-reverse pointer-events-none">
             <div class="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_10px_#ffffff] absolute bottom-2 right-12"></div>
           </div>
 
-          <div class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl cosmic-glass p-6 flex flex-col justify-between shadow-[0_0_40px_rgba(255,42,133,0.25)] border border-pink-500/40">
-            
+          <div onclick="openProfileModal()" class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl cosmic-glass p-6 flex flex-col justify-between shadow-[0_0_40px_rgba(255,42,133,0.25)] border border-pink-500/40 cursor-pointer hover:border-pink-400 transition group" title="คลิกเพื่อดูข้อมูลประวัติส่วนตัวฉบับเต็ม">
             <div class="flex items-center justify-between border-b border-pink-500/20 pb-3">
-              <span class="text-[11px] font-mono text-pink-400 tracking-wider uppercase">CORE STATUS</span>
+              <span class="text-[11px] font-mono text-pink-400 tracking-wider uppercase flex items-center gap-1.5">
+                <i class="fa-solid fa-address-card"></i> CORE STATUS
+              </span>
               <span class="flex h-2 w-2 relative">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
@@ -284,13 +236,9 @@
 
             <div class="text-center py-2">
               <div class="w-20 h-20 mx-auto rounded-2xl overflow-hidden bg-black/80 border border-pink-500 shadow-[0_0_20px_rgba(255,42,133,0.4)] mb-3 relative group">
-                <img 
-                  src="https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg" 
-                  alt="Kuriya Thathe" 
-                  class="w-full h-full object-cover group-hover:scale-110 transition duration-300"
-                />
+                <img src="https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg" alt="Kuriya Thathe" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
               </div>
-              <h3 class="font-orbitron font-bold text-white text-base">KURIYA THATHE</h3>
+              <h3 class="font-orbitron font-bold text-white text-base group-hover:text-pink-300 transition">KURIYA THATHE</h3>
               <p class="text-xs font-mono text-zinc-400">AI & Full-Stack Developer</p>
             </div>
 
@@ -308,21 +256,15 @@
                 <div class="text-[9px] text-zinc-500 uppercase">Voyage</div>
               </div>
             </div>
-
           </div>
-
         </div>
       </div>
-
     </div>
   </section>
 
-  <!-- ========================================================
-       ส่วนคลังผลงาน (PROJECT NEBULA)
-  ======================================================== -->
+  <!-- PROJECT NEBULA -->
   <section id="projects" class="py-24 border-y border-pink-500/20 bg-black/40 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
       <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div>
           <div class="flex items-center gap-2 text-xs font-mono text-pink-400 uppercase tracking-widest mb-1.5">
@@ -365,16 +307,12 @@
         <h4 class="text-white font-orbitron text-lg font-bold">NO TRANSMISSION FOUND</h4>
         <p class="text-zinc-500 text-xs font-mono mt-1">ยังไม่มีข้อมูลผลงานในหมวดหมู่นี้</p>
       </div>
-
     </div>
   </section>
 
-  <!-- ========================================================
-       ส่วนทักษะและความเชี่ยวชาญ (TECH CONSTELLATION & CAPABILITIES)
-  ======================================================== -->
+  <!-- SKILLS SECTION -->
   <section id="skills" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-    
-    <div class="text-center max-w-2xl mx-auto mb-14">
+    <div class="text-center max-w-3xl mx-auto mb-14">
       <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-xs font-mono text-pink-400 mb-3">
         <i class="fa-solid fa-network-wired animate-pulse"></i>
         <span>TECH STAR CLUSTER // SKILL ARCHITECTURE</span>
@@ -383,73 +321,36 @@
         ทักษะ & <span class="text-pink-500 pink-text-glow">ความเชี่ยวชาญ</span>
       </h2>
       <p class="text-zinc-400 text-sm mt-3 font-light leading-relaxed">
-        กลุ่มดาวแห่งเทคโนโลยีและเครื่องมือที่ผ่านการลงมือปฏิบัติจริง ทั้งการพัฒนาระบบเว็บ, โมเดล AI Vision, โครงสร้าง OOP, อัลกอริทึมการเทรด และความมั่นคงปลอดภัยไซเบอร์
+        กลุ่มดาวแห่งเทคโนโลยีและทักษะที่กุริญาได้ลงมือสร้างสรรค์จริง ตั้งแต่การพัฒนา Modern Web Platform, การเทรนโมเดล AI Vision ตรวจจับศัตรูพืช, การออกแบบโครงสร้าง Java OOP, การพัฒนาระบบบอทเทรดอัลกอริทึม ไปจนถึงการวิเคราะห์ความมั่นคงปลอดภัยทางไซเบอร์
       </p>
     </div>
 
-    <div class="flex items-center justify-center gap-2 flex-wrap mb-10 font-mono text-xs">
-      <button onclick="filterSkillCards('all')" class="skill-tab-btn active px-4 py-2 rounded-xl bg-pink-500 text-black font-bold transition shadow-[0_0_15px_rgba(255,42,133,0.4)]">
-        ALL LAYERS (ทุกเลเยอร์)
-      </button>
-      <button onclick="filterSkillCards('web-dev')" class="skill-tab-btn px-4 py-2 rounded-xl bg-black/70 text-zinc-300 border border-pink-500/30 hover:border-pink-500/60 transition">
-        WEB & FRONTEND
-      </button>
-      <button onclick="filterSkillCards('ai-core')" class="skill-tab-btn px-4 py-2 rounded-xl bg-black/70 text-zinc-300 border border-pink-500/30 hover:border-pink-500/60 transition">
-        AI VISION & OOP
-      </button>
-      <button onclick="filterSkillCards('algo-security')" class="skill-tab-btn px-4 py-2 rounded-xl bg-black/70 text-zinc-300 border border-pink-500/30 hover:border-pink-500/60 transition">
-        ALGO, TOOLS & SECURITY
-      </button>
-    </div>
-
+    <!-- Skills Grid 3 Layers -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="skillsContainer">
-      
-      <!-- LAYER 01: WEB & FRONTEND -->
-      <div class="skill-card cosmic-glass rounded-3xl p-7 transition-all duration-300 group hover:-translate-y-1.5 border border-pink-500/25" data-category="web-dev">
+      <!-- LAYER 01 -->
+      <div class="skill-card cosmic-glass rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1.5 border border-pink-500/25">
         <div class="flex items-center justify-between mb-5">
-          <div class="w-12 h-12 rounded-2xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,42,133,0.3)] group-hover:scale-110 transition-transform">
+          <div class="w-12 h-12 rounded-2xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,42,133,0.3)]">
             <i class="fa-solid fa-code"></i>
           </div>
           <span class="text-[10px] font-mono text-pink-400/80 bg-black/60 px-2.5 py-1 rounded-md border border-pink-500/20 uppercase tracking-widest">LAYER // 01</span>
         </div>
-
         <h3 class="font-orbitron font-bold text-lg text-white mb-2">Web & Platform</h3>
-        <p class="text-zinc-400 text-xs mb-6 font-light leading-relaxed">
-          พัฒนา Modern Web Applications และระบบบริการออนไลน์ ที่รองรับ Responsive บนทุกหน้าจอ เชื่อมต่อฐานข้อมูล และ Deploy บนคลาวด์
-        </p>
-
+        <p class="text-zinc-400 text-xs mb-6 font-light leading-relaxed">พัฒนา Modern Web Applications และระบบบริการออนไลน์ ที่รองรับ Responsive บนทุกหน้าจอ เชื่อมต่อฐานข้อมูล และ Deploy บนคลาวด์</p>
         <div class="space-y-4 font-mono text-xs">
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>Next.js & React</span>
-              <span class="text-pink-400">88%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 88%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>Next.js & React</span><span class="text-pink-400">88%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 88%"></div></div>
           </div>
-
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>Tailwind CSS</span>
-              <span class="text-pink-400">92%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 92%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>Tailwind CSS</span><span class="text-pink-400">92%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 92%"></div></div>
           </div>
-
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>JavaScript & HTML/CSS</span>
-              <span class="text-pink-400">90%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 90%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>JavaScript & HTML/CSS</span><span class="text-pink-400">90%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 90%"></div></div>
           </div>
         </div>
-
         <div class="pt-6 mt-6 border-t border-pink-500/20 flex flex-wrap gap-2">
           <span class="px-2.5 py-1 bg-black/60 text-zinc-300 text-[11px] font-mono rounded-lg border border-pink-500/30">Vercel Deploy</span>
           <span class="px-2.5 py-1 bg-black/60 text-zinc-300 text-[11px] font-mono rounded-lg border border-pink-500/30">GitHub CI/CD</span>
@@ -457,52 +358,30 @@
         </div>
       </div>
 
-      <!-- LAYER 02: AI VISION & OOP -->
-      <div class="skill-card cosmic-glass rounded-3xl p-7 transition-all duration-300 group hover:-translate-y-1.5 border border-pink-500/25" data-category="ai-core">
+      <!-- LAYER 02 -->
+      <div class="skill-card cosmic-glass rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1.5 border border-pink-500/25">
         <div class="flex items-center justify-between mb-5">
-          <div class="w-12 h-12 rounded-2xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,42,133,0.3)] group-hover:scale-110 transition-transform">
+          <div class="w-12 h-12 rounded-2xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,42,133,0.3)]">
             <i class="fa-solid fa-brain"></i>
           </div>
           <span class="text-[10px] font-mono text-pink-400/80 bg-black/60 px-2.5 py-1 rounded-md border border-pink-500/20 uppercase tracking-widest">LAYER // 02</span>
         </div>
-
         <h3 class="font-orbitron font-bold text-lg text-white mb-2">AI Vision & OOP Core</h3>
-        <p class="text-zinc-400 text-xs mb-6 font-light leading-relaxed">
-          เตรียม Dataset และเทรนโมเดล Computer Vision สำหรับตรวจจับวัตถุ พร้อมการออกแบบสถาปัตยกรรม OOP และ Data Structures
-        </p>
-
+        <p class="text-zinc-400 text-xs mb-6 font-light leading-relaxed">เตรียม Dataset และเทรนโมเดล Computer Vision สำหรับตรวจจับวัตถุ พร้อมการออกแบบสถาปัตยกรรม OOP และ Data Structures</p>
         <div class="space-y-4 font-mono text-xs">
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>Roboflow & Computer Vision</span>
-              <span class="text-pink-400">88%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 88%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>Roboflow & Computer Vision</span><span class="text-pink-400">88%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 88%"></div></div>
           </div>
-
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>Python Core & API</span>
-              <span class="text-pink-400">90%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 90%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>Python Core & API</span><span class="text-pink-400">90%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 90%"></div></div>
           </div>
-
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>Java OOP & ArrayList</span>
-              <span class="text-pink-400">85%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 85%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>Java OOP & ArrayList</span><span class="text-pink-400">85%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 85%"></div></div>
           </div>
         </div>
-
         <div class="pt-6 mt-6 border-t border-pink-500/20 flex flex-wrap gap-2">
           <span class="px-2.5 py-1 bg-black/60 text-zinc-300 text-[11px] font-mono rounded-lg border border-pink-500/30">Dataset Annotation</span>
           <span class="px-2.5 py-1 bg-black/60 text-zinc-300 text-[11px] font-mono rounded-lg border border-pink-500/30">Object-Oriented</span>
@@ -510,65 +389,153 @@
         </div>
       </div>
 
-      <!-- LAYER 03: ALGO, TOOLS & SECURITY -->
-      <div class="skill-card cosmic-glass rounded-3xl p-7 transition-all duration-300 group hover:-translate-y-1.5 border border-pink-500/25" data-category="algo-security">
+      <!-- LAYER 03 -->
+      <div class="skill-card cosmic-glass rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1.5 border border-pink-500/25">
         <div class="flex items-center justify-between mb-5">
-          <div class="w-12 h-12 rounded-2xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,42,133,0.3)] group-hover:scale-110 transition-transform">
+          <div class="w-12 h-12 rounded-2xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,42,133,0.3)]">
             <i class="fa-solid fa-shield-halved"></i>
           </div>
           <span class="text-[10px] font-mono text-pink-400/80 bg-black/60 px-2.5 py-1 rounded-md border border-pink-500/20 uppercase tracking-widest">LAYER // 03</span>
         </div>
-
         <h3 class="font-orbitron font-bold text-lg text-white mb-2">Algo, Tools & Security</h3>
-        <p class="text-zinc-400 text-xs mb-6 font-light leading-relaxed">
-          สร้างบอทเทรดอัตโนมัติด้วย MQL5, พัฒนาโปรแกรม Desktop GUI เฉพาะทาง และวิเคราะห์ความปลอดภัยด้านการเข้ารหัสข้อมูล
-        </p>
-
+        <p class="text-zinc-400 text-xs mb-6 font-light leading-relaxed">สร้างบอทเทรดอัตโนมัติด้วย MQL5, พัฒนาโปรแกรม Desktop GUI เฉพาะทาง และวิเคราะห์ความปลอดภัยด้านการเข้ารหัสข้อมูล</p>
         <div class="space-y-4 font-mono text-xs">
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>MQL5 & MetaTrader 5</span>
-              <span class="text-pink-400">85%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 85%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>MQL5 & MetaTrader 5</span><span class="text-pink-400">85%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 85%"></div></div>
           </div>
-
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>Cryptography (Ciphers & Hashes)</span>
-              <span class="text-pink-400">82%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 82%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>Cryptography (Ciphers & Hashes)</span><span class="text-pink-400">82%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 82%"></div></div>
           </div>
-
           <div>
-            <div class="flex justify-between text-zinc-300 mb-1">
-              <span>Desktop GUI (PyQt6 / Tkinter)</span>
-              <span class="text-pink-400">88%</span>
-            </div>
-            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20">
-              <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 88%"></div>
-            </div>
+            <div class="flex justify-between text-zinc-300 mb-1"><span>Desktop GUI (PyQt6 / Tkinter)</span><span class="text-pink-400">88%</span></div>
+            <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-pink-500/20"><div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full" style="width: 88%"></div></div>
           </div>
         </div>
-
         <div class="pt-6 mt-6 border-t border-pink-500/20 flex flex-wrap gap-2">
           <span class="px-2.5 py-1 bg-black/60 text-zinc-300 text-[11px] font-mono rounded-lg border border-pink-500/30">Trading Bot</span>
           <span class="px-2.5 py-1 bg-black/60 text-zinc-300 text-[11px] font-mono rounded-lg border border-pink-500/30">Network Security</span>
           <span class="px-2.5 py-1 bg-black/60 text-zinc-300 text-[11px] font-mono rounded-lg border border-pink-500/30">Python Desktop</span>
         </div>
       </div>
-
     </div>
   </section>
 
-  <!-- ========================================================
-       ส่วนติดต่อ (CONTACT)
-  ======================================================== -->
+  <!-- CERTIFICATES SECTION -->
+  <section id="certificates" class="py-24 border-t border-pink-500/20 bg-black/40 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-14">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-xs font-mono text-pink-400 mb-3">
+          <i class="fa-solid fa-award animate-pulse"></i>
+          <span>ACCREDITATIONS & CERTIFICATES</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-orbitron tracking-tight">
+          เกียรติบัตร & <span class="text-pink-500 pink-text-glow">ใบรับรอง</span>
+        </h2>
+        <p class="text-zinc-400 text-sm mt-3 font-light leading-relaxed">
+          การรับรองความรู้และทักษะความสามารถทางด้านคอมพิวเตอร์และปัญญาประดิษฐ์จากหลักสูตรและการแข่งขัน
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Cert Card 1 -->
+        <div class="cosmic-glass rounded-3xl p-5 border border-pink-500/25 space-y-4 hover:border-pink-400 transition group flex flex-col justify-between">
+          <div>
+            <div class="relative h-44 rounded-2xl overflow-hidden bg-black/80 border border-pink-500/30 mb-4 cursor-pointer" onclick="openMediaPreview('https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg', 'AI & Computer Vision Specialist')">
+              <img src="https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg" alt="Certificate" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition flex items-center justify-center">
+                <span class="px-3 py-1 rounded-lg bg-black/80 border border-pink-500/40 text-[11px] font-mono text-pink-300">
+                  <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> ดูภาพใบประกาศ
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-xs font-mono text-pink-400 mb-1">
+              <span>Roboflow / Computer Vision</span>
+              <span class="text-zinc-500">2026</span>
+            </div>
+            <h4 class="font-orbitron font-bold text-white text-base group-hover:text-pink-300 transition">Computer Vision & Object Detection Certificate</h4>
+            <p class="text-zinc-400 text-xs font-light mt-1.5 leading-relaxed">ผ่านการฝึกอบรมการติดป้ายกำกับชุดข้อมูล (Dataset Annotation) และพัฒนาโมเดล YOLO ตรวจจับศัตรูพืช</p>
+          </div>
+          <div class="pt-3 border-t border-pink-500/20 flex justify-between items-center text-[11px] font-mono text-zinc-400">
+            <span>ISSUED BY: ROBOFLOW</span>
+            <button onclick="openMediaPreview('https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg', 'AI & Computer Vision Specialist')" class="text-pink-400 hover:text-white">INSPECT <i class="fa-solid fa-arrow-right text-[10px]"></i></button>
+          </div>
+        </div>
+
+        <!-- Cert Card 2 -->
+        <div class="cosmic-glass rounded-3xl p-5 border border-pink-500/25 space-y-4 hover:border-pink-400 transition group flex flex-col justify-between">
+          <div>
+            <div class="relative h-44 rounded-2xl overflow-hidden bg-black/80 border border-pink-500/30 mb-4 cursor-pointer" onclick="openMediaPreview('https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg', 'Algorithmic Trading Bot Midterm Challenge')">
+              <img src="https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg" alt="Certificate" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition flex items-center justify-center">
+                <span class="px-3 py-1 rounded-lg bg-black/80 border border-pink-500/40 text-[11px] font-mono text-pink-300">
+                  <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> ดูภาพใบประกาศ
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-xs font-mono text-pink-400 mb-1">
+              <span>Financial Algo & Trading</span>
+              <span class="text-zinc-500">2026</span>
+            </div>
+            <h4 class="font-orbitron font-bold text-white text-base group-hover:text-pink-300 transition">MQL5 Trading Bot Midterm Challenge</h4>
+            <p class="text-zinc-400 text-xs font-light mt-1.5 leading-relaxed">ได้รับรางวัลผลงานการออกแบบบอทเทรดอัลกอริทึมทองคำด้วย ADX & Bollinger Bands บน MetaTrader 5</p>
+          </div>
+          <div class="pt-3 border-t border-pink-500/20 flex justify-between items-center text-[11px] font-mono text-zinc-400">
+            <span>ISSUED BY: CS MAEJO</span>
+            <button onclick="openMediaPreview('https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg', 'Algorithmic Trading Bot Midterm Challenge')" class="text-pink-400 hover:text-white">INSPECT <i class="fa-solid fa-arrow-right text-[10px]"></i></button>
+          </div>
+        </div>
+
+        <!-- Cert Card 3 -->
+        <div class="cosmic-glass rounded-3xl p-5 border border-pink-500/25 space-y-4 hover:border-pink-400 transition group flex flex-col justify-between">
+          <div>
+            <div class="relative h-44 rounded-2xl overflow-hidden bg-black/80 border border-pink-500/30 mb-4 cursor-pointer" onclick="openMediaPreview('https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg', 'Network Security & Encryption Achievement')">
+              <img src="https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg" alt="Certificate" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition flex items-center justify-center">
+                <span class="px-3 py-1 rounded-lg bg-black/80 border border-pink-500/40 text-[11px] font-mono text-pink-300">
+                  <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> ดูภาพใบประกาศ
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-xs font-mono text-pink-400 mb-1">
+              <span>Security & Cryptography</span>
+              <span class="text-zinc-500">2026</span>
+            </div>
+            <h4 class="font-orbitron font-bold text-white text-base group-hover:text-pink-300 transition">Network Security & Encryption Achievement</h4>
+            <p class="text-zinc-400 text-xs font-light mt-1.5 leading-relaxed">ผ่านเกณฑ์การทดสอบการเข้ารหัสข้อมูล Ciphers, Simplified DES, SHA-256 และความปลอดภัยในระบบเครือข่าย</p>
+          </div>
+          <div class="pt-3 border-t border-pink-500/20 flex justify-between items-center text-[11px] font-mono text-zinc-400">
+            <span>ISSUED BY: MJU CS DEPT</span>
+            <button onclick="openMediaPreview('https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg', 'Network Security & Encryption Achievement')" class="text-pink-400 hover:text-white">INSPECT <i class="fa-solid fa-arrow-right text-[10px]"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIVITIES SECTION (พร้อมแถบเลื่อนดูหลายภาพ) -->
+  <section id="activities" class="py-24 border-t border-pink-500/20 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-14">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-xs font-mono text-pink-400 mb-3">
+          <i class="fa-solid fa-compass animate-pulse"></i>
+          <span>EXPEDITIONS & FIELD ACTIVITIES</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-orbitron tracking-tight">
+          กิจกรรม & <span class="text-pink-500 pink-text-glow">การเข้าร่วม</span>
+        </h2>
+        <p class="text-zinc-400 text-sm mt-3 font-light leading-relaxed">
+          ประสบการณ์นอกห้องเรียน การพัฒนาโปรเจกต์ภาคปฏิบัติ และการทำงานร่วมกันเป็นทีมในสายวิทยาการคอมพิวเตอร์
+        </p>
+      </div>
+
+      <!-- Dynamic Grid แสดงกิจกรรมที่เลื่อนดูรูปได้ -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="activitiesGrid"></div>
+    </div>
+  </section>
+
+  <!-- CONTACT SECTION -->
   <section id="contact" class="py-24 border-t border-pink-500/20 bg-black/50 relative">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
@@ -612,7 +579,7 @@
     </div>
   </section>
 
-  <!-- ท้ายหน้าเว็บ (FOOTER) พร้อมลิงก์ลับเข้าสู่หน้า Admin -->
+  <!-- FOOTER -->
   <footer class="border-t border-pink-500/20 bg-[#07060c] py-10 text-center text-xs font-mono text-zinc-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2 text-zinc-400">
@@ -629,20 +596,108 @@
     </div>
   </footer>
 
-  <!-- ========================================================
-       หน้าต่างดูรายละเอียดผลงาน (DETAIL MODAL)
-  ======================================================== -->
+  <!-- MODAL PROFILE DOSSIER -->
+  <div id="profileModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="cosmic-glass border border-pink-500/50 w-full max-w-2xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(255,42,133,0.3)] relative max-h-[90vh] flex flex-col">
+      <div class="px-6 py-4 border-b border-pink-500/20 flex items-center justify-between bg-black/60 font-mono">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-user-astronaut text-pink-400 text-sm"></i>
+          <span class="text-xs font-orbitron font-bold text-white tracking-wider">ASTRONAUT DOSSIER // IDENTIFICATION</span>
+        </div>
+        <button onclick="closeProfileModal()" class="text-zinc-400 hover:text-pink-400 p-1 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 sm:p-8 overflow-y-auto space-y-6 font-sans text-xs">
+        <div class="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-pink-500/20 text-center sm:text-left">
+          <div class="w-24 h-24 rounded-2xl overflow-hidden border-2 border-pink-500 shadow-[0_0_20px_rgba(255,42,133,0.4)] shrink-0">
+            <img src="https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg" alt="Kuriya Thathe" class="w-full h-full object-cover">
+          </div>
+          <div class="space-y-1.5">
+            <div class="inline-block px-3 py-1 rounded-full bg-pink-500/15 border border-pink-500/30 text-pink-400 font-mono text-[10px]">
+              STUDENT ID: 6704101310
+            </div>
+            <h3 class="text-xl font-bold font-orbitron text-white">กุริญา ทาเทร์ (Kuriya Thathe)</h3>
+            <p class="text-zinc-300 font-light">Computer Science Student & Full-Stack Developer</p>
+            <div class="flex flex-wrap gap-2 justify-center sm:justify-start font-mono text-[11px] text-zinc-400 pt-1">
+              <span><i class="fa-solid fa-envelope text-pink-400 mr-1"></i> Kuriya122thathe@gmail.com</span>
+              <span><i class="fa-brands fa-github text-pink-400 mr-1"></i> github.com/Kuriya05</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <h4 class="font-orbitron font-bold text-sm text-pink-400 flex items-center gap-2">
+            <i class="fa-solid fa-graduation-cap"></i> ประวัติการศึกษา (EDUCATION)
+          </h4>
+          <div class="bg-black/60 p-4 rounded-2xl border border-pink-500/20 space-y-1">
+            <div class="flex justify-between font-mono text-zinc-300">
+              <span class="font-bold text-white">มหาวิทยาลัยแม่โจ้ (Maejo University)</span>
+              <span class="text-pink-400">2024 - ปัจจุบัน</span>
+            </div>
+            <p class="text-zinc-400">หลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชาวิทยาการคอมพิวเตอร์ (Computer Science)</p>
+            <p class="text-zinc-500 text-[11px] font-mono">คณะวิทยาศาสตร์ • ความสนใจ: Artificial Intelligence, Vision Systems & Software Engineering</p>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <h4 class="font-orbitron font-bold text-sm text-pink-400 flex items-center gap-2">
+            <i class="fa-solid fa-compass"></i> บทสรุปและเป้าหมาย (PROFILE SUMMARY)
+          </h4>
+          <p class="text-zinc-300 leading-relaxed font-light bg-black/40 p-4 rounded-2xl border border-pink-500/15">
+            นักศึกษาชั้นปีที่ 3 สาขาวิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยแม่โจ้ มีความหลงใหลในการพัฒนา Modern Web Applications และระบบตรวจจับวัตถุด้วย AI Computer Vision มีทักษะการออกแบบสถาปัตยกรรมเชิงวัตถุ (OOP) และการสร้างโปรแกรมอัตโนมัติ พร้อมนำความรู้ไปประยุกต์ใช้เพื่อร่วมฝึกงานและพัฒนาซอฟต์แวร์ที่ตอบโจทย์ผู้ใช้งานจริง
+          </p>
+        </div>
+
+        <div class="space-y-2.5">
+          <h4 class="font-orbitron font-bold text-sm text-pink-400 flex items-center gap-2">
+            <i class="fa-solid fa-microchip"></i> ความถนัดหลัก (CORE CAPABILITIES)
+          </h4>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono text-[11px]">
+            <div class="p-2.5 rounded-xl bg-black/60 border border-pink-500/20 text-zinc-300">✓ Next.js & React</div>
+            <div class="p-2.5 rounded-xl bg-black/60 border border-pink-500/20 text-zinc-300">✓ Python & FastAPI</div>
+            <div class="p-2.5 rounded-xl bg-black/60 border border-pink-500/20 text-zinc-300">✓ YOLOv8 / Roboflow</div>
+            <div class="p-2.5 rounded-xl bg-black/60 border border-pink-500/20 text-zinc-300">✓ Java OOP Architecture</div>
+            <div class="p-2.5 rounded-xl bg-black/60 border border-pink-500/20 text-zinc-300">✓ MQL5 & MT5 Trading</div>
+            <div class="p-2.5 rounded-xl bg-black/60 border border-pink-500/20 text-zinc-300">✓ Tailwind CSS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-pink-500/20 bg-black/80 flex justify-end font-mono">
+        <button onclick="closeProfileModal()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 text-black font-bold text-xs uppercase">
+          ปิดหน้าต่าง (CLOSE)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MEDIA PREVIEW (สำหรับดูรูปภาพเกียรติบัตรและกิจกรรม) -->
+  <div id="mediaModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="cosmic-glass border border-pink-500/50 w-full max-w-3xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(255,42,133,0.35)] relative flex flex-col">
+      <div class="px-6 py-4 border-b border-pink-500/20 flex items-center justify-between bg-black/60 font-mono">
+        <span id="mediaModalTitle" class="text-xs font-bold text-pink-400">MEDIA PREVIEW</span>
+        <button onclick="closeMediaPreview()" class="text-zinc-400 hover:text-pink-400 text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-4 bg-black/90 flex items-center justify-center max-h-[75vh] overflow-hidden">
+        <img id="mediaModalImg" src="" alt="Preview" class="max-h-[70vh] w-auto object-contain rounded-xl border border-pink-500/30">
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL MISSION (เดิม) -->
   <div id="projectDetailModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
     <div class="cosmic-glass border border-pink-500/50 w-full max-w-2xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(255,42,133,0.3)] relative max-h-[90vh] flex flex-col">
       <div class="px-6 py-4 border-b border-pink-500/20 flex items-center justify-between bg-black/60">
         <span id="modalCategory" class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/40">SYSTEM</span>
-        <button onclick="closeDetailModal()" class="text-zinc-400 hover:text-pink-400 p-1 text-lg" aria-label="Close detail modal">
+        <button onclick="closeDetailModal()" class="text-zinc-400 hover:text-pink-400 p-1 text-lg">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <div class="p-6 overflow-y-auto space-y-5 font-sans">
-        
-        <!-- รูปภาพพรีวิวใน Modal ถ้ามีจะแสดงผลรูป ถ้าไม่มีจะแสดงไอคอนเดิม -->
         <div id="modalImageContainer" class="h-56 w-full rounded-2xl bg-black/80 border border-pink-500/30 flex items-center justify-center relative overflow-hidden group">
           <img id="modalProjectImg" src="" alt="Project Preview" class="w-full h-full object-cover hidden">
           <div id="modalPlaceholderIcon" class="flex flex-col items-center justify-center text-pink-500/40">
@@ -679,47 +734,34 @@
     <span id="toastMessage" class="text-xs font-mono">Signal transmitted successfully</span>
   </div>
 
-  <!-- ========================================================
-       JAVASCRIPT LOGIC
-  ======================================================== -->
+  <!-- JAVASCRIPT LOGIC -->
   <script>
-    // ตั้งค่า IndexedDB ให้ตรงกับฝั่ง Admin
     localforage.config({
       name: 'KuriyaCosmicDB',
       storeName: 'portfolio_store'
     });
 
-    // BroadcastChannel สำหรับซิงก์ข้อมูลแบบ Real-time ทันทีที่แอดมินบันทึก
     const syncChannel = new BroadcastChannel('cosmic_projects_sync');
     syncChannel.onmessage = (event) => {
-      if (event.data && event.data.type === 'PROJECTS_UPDATED') {
-        initPortfolio();
+      if (event.data) {
+        if (event.data.type === 'PROJECTS_UPDATED') initPortfolio();
+        if (event.data.type === 'ACTIVITIES_UPDATED') loadActivities();
       }
     };
 
-    // ตรวจจับการเปลี่ยนแปลงใน localStorage ด้วยอีกทาง
     window.addEventListener('storage', (e) => {
-      if (e.key === 'cosmic_projects_store') {
-        initPortfolio();
-      }
+      if (e.key === 'cosmic_projects_store') initPortfolio();
+      if (e.key === 'cosmic_activities_store') loadActivities();
     });
 
-    // ----------------------------------------------------
-    // 1. แคนวาส: Interactive Starfield & Meteor Canvas
-    // ----------------------------------------------------
+    // 1. Starfield & Meteor Canvas
     const canvas = document.getElementById('space-canvas');
     const ctx = canvas.getContext('2d');
-
-    let stars = [];
-    let meteors = [];
-    let width = 0;
-    let height = 0;
+    let stars = [], meteors = [], width = 0, height = 0;
 
     function resizeCanvas() {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
       initStars();
     }
 
@@ -753,12 +795,9 @@
 
     function drawCosmos() {
       ctx.clearRect(0, 0, width, height);
-
       stars.forEach(s => {
         s.alpha += s.pulseSpeed;
-        if (s.alpha > 1 || s.alpha < 0.15) {
-          s.pulseSpeed = -s.pulseSpeed;
-        }
+        if (s.alpha > 1 || s.alpha < 0.15) s.pulseSpeed = -s.pulseSpeed;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
         ctx.fillStyle = s.color;
@@ -773,7 +812,6 @@
         const grad = ctx.createLinearGradient(m.x, m.y, m.x - m.dx * 10, m.y - m.dy * 10);
         grad.addColorStop(0, 'rgba(255, 42, 133, ' + m.life + ')');
         grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        
         ctx.strokeStyle = grad;
         ctx.lineWidth = 2;
         ctx.moveTo(m.x, m.y);
@@ -783,10 +821,7 @@
         m.x += m.dx;
         m.y += m.dy;
         m.life -= 0.015;
-
-        if (m.life <= 0 || m.x > width || m.y > height) {
-          meteors.splice(i, 1);
-        }
+        if (m.life <= 0 || m.x > width || m.y > height) meteors.splice(i, 1);
       }
 
       spawnMeteor();
@@ -797,16 +832,12 @@
     resizeCanvas();
     drawCosmos();
 
-    // ----------------------------------------------------
-    // 2. แคนวาสจุดฝุ่นดาว & โครงข่ายใยประสาท AI (Cosmic Neural Dust)
-    // ----------------------------------------------------
+    // 2. Cosmic Neural Dust
     (function() {
       const cDots = document.getElementById('cosmic-dots-canvas');
       if (!cDots) return;
       const cCtx = cDots.getContext('2d');
-
-      let dots = [];
-      let w = 0, h = 0;
+      let dots = [], w = 0, h = 0;
 
       function resizeDots() {
         w = cDots.width = window.innerWidth;
@@ -833,16 +864,11 @@
 
       function renderDots() {
         cCtx.clearRect(0, 0, w, h);
-
         for (let i = 0; i < dots.length; i++) {
           const d = dots[i];
-          d.x += d.vx;
-          d.y += d.vy;
-
-          if (d.x < 0) d.x = w;
-          if (d.x > w) d.x = 0;
-          if (d.y < 0) d.y = h;
-          if (d.y > h) d.y = 0;
+          d.x += d.vx; d.y += d.vy;
+          if (d.x < 0) d.x = w; if (d.x > w) d.x = 0;
+          if (d.y < 0) d.y = h; if (d.y > h) d.y = 0;
 
           d.baseAlpha += d.pulse;
           if (d.baseAlpha > 0.95 || d.baseAlpha < 0.2) d.pulse = -d.pulse;
@@ -850,8 +876,6 @@
           cCtx.beginPath();
           cCtx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
           cCtx.fillStyle = `rgba(${d.color}, ${Math.max(0.1, Math.min(1, d.baseAlpha))})`;
-          cCtx.shadowColor = `rgba(${d.color}, 0.8)`;
-          cCtx.shadowBlur = d.radius * 4;
           cCtx.fill();
 
           for (let j = i + 1; j < dots.length; j++) {
@@ -861,15 +885,12 @@
               cCtx.beginPath();
               cCtx.moveTo(d.x, d.y);
               cCtx.lineTo(d2.x, d2.y);
-              const lineAlpha = (1 - dist / 85) * 0.25;
-              cCtx.strokeStyle = `rgba(255, 42, 133, ${lineAlpha})`;
+              cCtx.strokeStyle = `rgba(255, 42, 133, ${(1 - dist / 85) * 0.25})`;
               cCtx.lineWidth = 0.8;
-              cCtx.shadowBlur = 0;
               cCtx.stroke();
             }
           }
         }
-
         requestAnimationFrame(renderDots);
       }
 
@@ -878,9 +899,7 @@
       renderDots();
     })();
 
-    // ----------------------------------------------------
-    // 3. ข้อมูลผลงานเริ่มต้น (DEFAULT PROJECTS)
-    // ----------------------------------------------------
+    // 3. Projects Management
     const defaultProjects = [
       {
         id: 'p-cosmic-1',
@@ -898,7 +917,7 @@
         title: 'Cosmic Gold & Forex Algorithmic Bot',
         category: 'Algo & Trading',
         summary: 'บอทวิเคราะห์แนวรับ-แนวต้านอัตโนมัติบน XAUUSD พร้อมเชื่อมต่อ MetaTrader 5 ส่งแจ้งเตือน Real-time สู่ Line Notify & Telegram',
-        tags: ['Python', 'MetaTrader 5', 'Pandas', 'Telegram Bot', 'Algo Engine'],
+        tags: ['Python', 'MetaTrader 5', 'Pandas', 'Algo Engine'],
         demoUrl: '#',
         githubUrl: 'https://github.com/Kuriya05',
         imageUrl: '',
@@ -908,41 +927,18 @@
         id: 'p-cosmic-3',
         title: 'Quantum Next-Gen E-Commerce & Portal',
         category: 'Web Platform',
-        summary: 'แพลตฟอร์มพาณิชย์อิเล็กทรอนิกส์สไตล์ Modern Dark พร้อมแผงควบคุมแอดมิน, ตะกร้าสินค้าเรียลไทม์ และระบบชำระเงิน PromptPay QR',
-        tags: ['Next.js 14', 'React', 'Tailwind', 'PostgreSQL', 'Stripe'],
+        summary: 'แพลตฟอร์มพาณิชย์อิเล็กทรอนิกส์สไตล์ Modern Dark พร้อมแผงควบคุมแอดมิน, ตะกร้าสินค้าเรียลไทม์ และระบบชำระเงิน',
+        tags: ['Next.js 14', 'React', 'Tailwind', 'PostgreSQL'],
         demoUrl: '#',
         githubUrl: 'https://github.com/Kuriya05',
         imageUrl: '',
         icon: 'fa-network-wired'
-      },
-      {
-        id: 'p-cosmic-4',
-        title: 'Desktop Batch Image Resizer & Watermarker',
-        category: 'Tools & Cloud',
-        summary: 'โปรแกรมเดสก์ท็อปช่วยประมวลผลรูปภาพ ใส่ลายน้ำ และบีบอัดไฟล์แบบกลุ่มครั้งละหลายร้อยรูป ทำงานออฟไลน์ 100%',
-        tags: ['Python', 'CustomTkinter', 'Pillow', 'PyInstaller'],
-        demoUrl: '#',
-        githubUrl: 'https://github.com/Kuriya05',
-        imageUrl: '',
-        icon: 'fa-images'
-      },
-      {
-        id: 'p-cosmic-5',
-        title: 'Sub-Space Realtime Chat & File Sync',
-        category: 'Web Platform',
-        summary: 'ระบบสนทนาความเร็วสูง รองรับการส่งโค้ดและไฟล์พร้อมการเข้ารหัส ส่งข้อมูลผ่าน WebSocket และกระจายโหลดด้วย Redis',
-        tags: ['Node.js', 'Socket.io', 'Redis', 'React', 'Tailwind'],
-        demoUrl: '#',
-        githubUrl: 'https://github.com/Kuriya05',
-        imageUrl: '',
-        icon: 'fa-comments'
       }
     ];
 
     let currentFilter = 'all';
     let projects = [];
 
-    // โหลดข้อมูลแบบ Async รองรับทั้ง IndexedDB และ LocalStorage
     async function initPortfolio() {
       try {
         let stored = await localforage.getItem('cosmic_projects_store');
@@ -950,13 +946,8 @@
           const legacy = localStorage.getItem('cosmic_projects_store');
           stored = legacy ? JSON.parse(legacy) : null;
         }
-
-        if (stored && Array.isArray(stored) && stored.length > 0) {
-          projects = stored;
-        } else {
-          projects = defaultProjects;
-          await localforage.setItem('cosmic_projects_store', projects);
-        }
+        projects = stored && Array.isArray(stored) && stored.length > 0 ? stored : defaultProjects;
+        await localforage.setItem('cosmic_projects_store', projects);
       } catch (e) {
         projects = defaultProjects;
       }
@@ -966,9 +957,7 @@
 
     function updateStats() {
       const countEl = document.getElementById('statProjectsCount');
-      if (countEl) {
-        countEl.textContent = `${projects.length}+`;
-      }
+      if (countEl) countEl.textContent = `${projects.length}+`;
     }
 
     function renderProjects() {
@@ -996,7 +985,6 @@
           `<span class="text-[11px] font-mono px-2.5 py-1 rounded-md bg-black/80 text-zinc-300 border border-pink-500/30">${t}</span>`
         ).join('');
 
-        // ส่วนแสดงรูปภาพหน้าปกผลงาน
         const imageHeader = project.imageUrl ? `
           <div class="relative w-full h-48 overflow-hidden bg-black/80 border-b border-pink-500/20">
             <img src="${project.imageUrl}" alt="${project.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
@@ -1017,13 +1005,12 @@
         card.innerHTML = `
           <div>
             ${imageHeader}
-            
             <div class="p-6">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-lg font-bold font-orbitron text-white group-hover:text-pink-300 transition-colors line-clamp-1">${project.title}</h3>
                 ${project.imageUrl ? `
                   <div class="w-8 h-8 rounded-lg bg-black/60 border border-pink-500/30 text-pink-400 flex items-center justify-center text-xs ml-2 shrink-0">
-                    <i class="fa-solid ${project.icon || 'fa-code'}"></i>
+                    <i class="fa-solid fa-code"></i>
                   </div>
                 ` : ''}
               </div>
@@ -1078,38 +1065,160 @@
       renderProjects();
     }
 
-    // ----------------------------------------------------
-    // 4. สลับหมวดหมู่ทักษะ (Skill Tabs Controller)
-    // ----------------------------------------------------
-    function filterSkillCards(category) {
-      const cards = document.querySelectorAll('.skill-card');
-      const tabs = document.querySelectorAll('.skill-tab-btn');
-
-      tabs.forEach(btn => {
-        btn.classList.remove('bg-pink-500', 'text-black', 'shadow-[0_0_15px_rgba(255,42,133,0.4)]');
-        btn.classList.add('bg-black/70', 'text-zinc-300', 'border', 'border-pink-500/30');
-      });
-
-      if (event && event.currentTarget) {
-        event.currentTarget.classList.remove('bg-black/70', 'text-zinc-300', 'border', 'border-pink-500/30');
-        event.currentTarget.classList.add('bg-pink-500', 'text-black', 'shadow-[0_0_15px_rgba(255,42,133,0.4)]');
+    // 4. Activities Management (พร้อมแถบเลื่อนดูรูปภาพหลายรูป)
+    const defaultActivities = [
+      {
+        id: 'act-1',
+        title: 'กิจกรรมพัฒนาเว็บไซต์ AI-CS Department Platform',
+        role: 'LEAD DEV',
+        location: 'Maejo University • 2026',
+        icon: 'fa-users-gear',
+        description: 'มีส่วนร่วมในการออกแบบและพัฒนาระบบหน้าบ้าน (Frontend) ของแพลตฟอร์มภาควิชา AI-CS มหาวิทยาลัยแม่โจ้ โดยใช้ Next.js, React และ Tailwind CSS รองรับการแสดงผลทุกอุปกรณ์',
+        tags: ['Team Collaboration', 'Web UI/UX', 'GitHub Branching'],
+        images: [
+          'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
+        ]
+      },
+      {
+        id: 'act-2',
+        title: 'การแข่งขันประกวดสร้างบอทเทรด Quantitative Trading',
+        role: 'COMPETITION',
+        location: 'Midterm Competition • 2026',
+        icon: 'fa-chart-pie',
+        description: 'เข้าร่วมการแข่งขันพัฒนาโมเดลวิเคราะห์ทิศทางราคาทองคำ H4 Backtest ด้วยอัลกอริทึม MQL5 ประเมินความเสี่ยง Drawdown และสร้างบอทส่งคำสั่งอัตโนมัติ',
+        tags: ['Quant Strategy', 'MQL5 Bot', 'Backtesting'],
+        images: [
+          'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
+        ]
       }
+    ];
 
-      cards.forEach(card => {
-        if (category === 'all' || card.getAttribute('data-category') === category) {
-          card.classList.remove('hidden');
-          const bars = card.querySelectorAll('.bg-gradient-to-r');
-          bars.forEach(b => {
-            const w = b.style.width;
-            b.style.width = '0%';
-            setTimeout(() => { b.style.width = w; }, 50);
-          });
-        } else {
-          card.classList.add('hidden');
+    let activities = [];
+
+    async function loadActivities() {
+      try {
+        let stored = await localforage.getItem('cosmic_activities_store');
+        if (!stored || !Array.isArray(stored) || stored.length === 0) {
+          const legacy = localStorage.getItem('cosmic_activities_store');
+          stored = legacy ? JSON.parse(legacy) : null;
         }
+        activities = stored && Array.isArray(stored) && stored.length > 0 ? stored : defaultActivities;
+        await localforage.setItem('cosmic_activities_store', activities);
+      } catch (e) {
+        activities = defaultActivities;
+      }
+      renderActivities();
+    }
+
+    function renderActivities() {
+      const container = document.getElementById('activitiesGrid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      activities.forEach((act, actIdx) => {
+        const card = document.createElement('div');
+        card.className = 'cosmic-glass rounded-3xl p-7 border border-pink-500/30 space-y-4 hover:border-pink-400 transition flex flex-col justify-between';
+
+        const tagsHtml = (act.tags || []).map(t => 
+          `<span class="px-2.5 py-0.5 rounded bg-black border border-pink-500/20 text-zinc-300 font-mono text-[10px]">${t}</span>`
+        ).join('');
+
+        // Slider แนวนอน
+        let imagesSliderHtml = '';
+        if (act.images && act.images.length > 0) {
+          const sliderId = `slider-${act.id || actIdx}`;
+          const slides = act.images.map((imgUrl, i) => `
+            <div class="min-w-[220px] sm:min-w-[250px] h-40 rounded-2xl overflow-hidden bg-black/80 border border-pink-500/30 relative shrink-0 group/img cursor-pointer" onclick="openMediaPreview('${imgUrl}', '${act.title} (ภาพที่ ${i+1})')">
+              <img src="${imgUrl}" alt="${act.title}" class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500">
+              <div class="absolute inset-0 bg-black/30 group-hover/img:bg-transparent transition flex items-center justify-center">
+                <span class="opacity-0 group-hover/img:opacity-100 transition px-2.5 py-1 rounded-lg bg-black/80 border border-pink-500/40 text-[10px] font-mono text-pink-300">
+                  <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> ดูรูปใหญ่
+                </span>
+              </div>
+            </div>
+          `).join('');
+
+          imagesSliderHtml = `
+            <div class="relative pt-2 group/slider">
+              <div id="${sliderId}" class="flex gap-3 overflow-x-auto pb-2 scroll-smooth no-scrollbar select-none">
+                ${slides}
+              </div>
+
+              ${act.images.length > 1 ? `
+                <button onclick="scrollSlider('${sliderId}', -240)" class="absolute left-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/80 border border-pink-500/50 text-pink-400 hover:bg-pink-500 hover:text-black flex items-center justify-center transition shadow-lg opacity-0 group-hover/slider:opacity-100 z-10">
+                  <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <button onclick="scrollSlider('${sliderId}', 240)" class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/80 border border-pink-500/50 text-pink-400 hover:bg-pink-500 hover:text-black flex items-center justify-center transition shadow-lg opacity-0 group-hover/slider:opacity-100 z-10">
+                  <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+                <div class="text-right text-[10px] font-mono text-pink-400/70 mt-1">
+                  <i class="fa-solid fa-arrows-left-right mr-1"></i> เลื่อนดูรูปภาพ (${act.images.length} รูป)
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(255,42,133,0.3)]">
+                  <i class="fa-solid ${act.icon || 'fa-users-gear'}"></i>
+                </div>
+                <div>
+                  <h4 class="font-orbitron font-bold text-white text-base">${act.title}</h4>
+                  <span class="text-xs font-mono text-pink-400">${act.location || ''}</span>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-pink-500/20 text-pink-300 text-[10px] font-mono">${act.role || 'MEMBER'}</span>
+            </div>
+
+            <p class="text-zinc-400 text-xs leading-relaxed font-light mt-3">
+              ${act.description}
+            </p>
+
+            ${imagesSliderHtml}
+          </div>
+
+          <div class="flex flex-wrap gap-1.5 pt-4 border-t border-pink-500/20">
+            ${tagsHtml}
+          </div>
+        `;
+
+        container.appendChild(card);
       });
     }
 
+    function scrollSlider(sliderId, distance) {
+      const el = document.getElementById(sliderId);
+      if (el) el.scrollBy({ left: distance, behavior: 'smooth' });
+    }
+
+    // Modal Profile Dossier
+    function openProfileModal() {
+      document.getElementById('profileModal').classList.remove('hidden');
+      document.getElementById('profileModal').classList.add('flex');
+    }
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+      document.getElementById('profileModal').classList.remove('flex');
+    }
+
+    // Modal Media Preview
+    function openMediaPreview(src, title) {
+      document.getElementById('mediaModalImg').src = src;
+      document.getElementById('mediaModalTitle').textContent = `INSPECT // ${title.toUpperCase()}`;
+      document.getElementById('mediaModal').classList.remove('hidden');
+      document.getElementById('mediaModal').classList.add('flex');
+    }
+    function closeMediaPreview() {
+      document.getElementById('mediaModal').classList.add('hidden');
+      document.getElementById('mediaModal').classList.remove('flex');
+      document.getElementById('mediaModalImg').src = '';
+    }
+
+    // Modal Inspect Mission
     function openDetailModal(projectId) {
       const p = projects.find(item => String(item.id) === String(projectId));
       if (!p) return;
@@ -1118,7 +1227,6 @@
       document.getElementById('modalCategory').textContent = p.category;
       document.getElementById('modalDescription').textContent = p.summary;
       
-      // จัดการแสดงรูปภาพใน Modal ถ้ามีรูปที่บันทึกมาจากแอดมิน
       const imgEl = document.getElementById('modalProjectImg');
       const placeholder = document.getElementById('modalPlaceholderIcon');
       if (p.imageUrl && p.imageUrl.trim() !== '') {
@@ -1189,7 +1297,6 @@
       showToast('📋 คัดลอกอีเมลเรียบร้อยแล้ว: ' + text);
     }
 
-    // Mobile Menu Controls
     const mobileBtn = document.getElementById('mobileMenuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
     mobileBtn.addEventListener('click', () => {
@@ -1202,6 +1309,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       initPortfolio();
+      loadActivities();
     });
   </script>
 </body>
