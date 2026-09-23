@@ -122,8 +122,8 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
-      <!-- Compact 3-Card Stats HUD (ขนาดพอดี ไม่ใหญ่เกินไป) -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 font-mono">
+      <!-- 4-Card Stats HUD -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 font-mono">
         <div onclick="filterByStatCategory('all')" class="cosmic-glass px-4 py-3 rounded-2xl border border-pink-500/25 cursor-pointer hover:border-pink-400 hover:bg-pink-500/5 transition group">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider group-hover:text-pink-300 transition">TOTAL MISSIONS</span>
@@ -133,7 +133,7 @@
           </div>
           <div class="flex items-baseline gap-2 mt-1">
             <span id="statTotal" class="text-2xl font-black text-white font-orbitron">0</span>
-            <span class="text-[10px] text-zinc-500 font-code">ทั้งหมด</span>
+            <span class="text-[10px] text-zinc-500 font-code">โปรเจกต์</span>
           </div>
         </div>
 
@@ -162,9 +162,22 @@
             <span class="text-[10px] text-purple-400/70 font-code">เว็บ & แพลตฟอร์ม</span>
           </div>
         </div>
+
+        <div onclick="openCertListModal()" class="cosmic-glass px-4 py-3 rounded-2xl border border-pink-500/25 cursor-pointer hover:border-pink-400 hover:bg-pink-500/5 transition group">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-rose-400 uppercase tracking-wider group-hover:text-rose-300 transition">CERTIFICATES</span>
+            <div class="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xs group-hover:scale-105 transition">
+              <i class="fa-solid fa-award"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="statCerts" class="text-2xl font-black text-rose-300 font-orbitron">0</span>
+            <span class="text-[10px] text-rose-400/70 font-code">เกียรติบัตร</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Action & Table Section -->
+      <!-- Action & Table Section (Projects) -->
       <div class="cosmic-glass rounded-3xl p-6 sm:p-8 border border-pink-500/30 space-y-6 relative overflow-hidden">
         <div class="absolute inset-0 bg-[linear-gradient(to_right,#ff2a8507_1px,transparent_1px),linear-gradient(to_bottom,#ff2a8507_1px,transparent_1px)] bg-[size:2rem_2rem] pointer-events-none"></div>
 
@@ -185,6 +198,11 @@
           </div>
           
           <div class="flex flex-wrap items-center gap-2.5">
+            <!-- ปุ่มจัดการเกียรติบัตร -->
+            <button onclick="openCertListModal()" class="px-3.5 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 hover:bg-rose-500 hover:text-black text-xs font-mono flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-award"></i>
+              <span>จัดการเกียรติบัตร</span>
+            </button>
             <button onclick="openActivityModal()" class="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-500/50 text-purple-300 hover:bg-purple-500 hover:text-black text-xs font-mono flex items-center gap-1.5 transition">
               <i class="fa-solid fa-camera-retro"></i>
               <span>เพิ่มกิจกรรม & รูปภาพ</span>
@@ -236,48 +254,10 @@
     </main>
   </div>
 
-  <!-- 3. MODAL จัดการผลงาน (พร้อมดาวเสาร์สีชมพู & ลายแผงวงจรเดิม) -->
+  <!-- 3. MODAL จัดการผลงาน (PROJECTS) -->
   <div id="projectModal" class="fixed inset-0 z-50 bg-[#05040a]/92 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
     <canvas id="modal-cosmic-dots-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
     <div class="absolute inset-0 bg-[linear-gradient(to_right,#ff2a8510_1px,transparent_1px),linear-gradient(to_bottom,#ff2a8510_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none z-0"></div>
-
-    <svg class="absolute bottom-2 left-2 w-72 h-72 sm:w-96 sm:h-96 opacity-40 pointer-events-none text-pink-500 z-0" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.4">
-      <path d="M 10 190 L 60 140 L 115 140 L 145 110 L 195 110" stroke-linecap="round"/>
-      <path d="M 30 195 L 75 150 L 130 150 L 155 125 L 185 125" stroke-linecap="round"/>
-      <circle cx="195" cy="110" r="4.5" class="fill-pink-500 stroke-none animate-ping"/>
-      <circle cx="195" cy="110" r="3" fill="#ffffff" stroke-none"/>
-      <circle cx="185" cy="125" r="2.5" fill="#ff2a85"/>
-      <text x="70" y="135" fill="#ff2a85" font-size="7" font-family="monospace">PCB//BUS-01</text>
-    </svg>
-
-    <div class="absolute top-3 right-3 sm:top-6 sm:right-12 md:right-20 pointer-events-none select-none z-0 neon-pink-saturn">
-      <svg class="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="pinkSaturnSphere" cx="35%" cy="30%" r="70%">
-            <stop offset="0%" stop-color="#ffffff"/><stop offset="20%" stop-color="#ff69b4"/><stop offset="55%" stop-color="#ff2a85"/><stop offset="85%" stop-color="#3d051e"/><stop offset="100%" stop-color="#080208"/>
-          </radialGradient>
-          <linearGradient id="pinkRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffffff"/><stop offset="35%" stop-color="#ff2a85"/><stop offset="70%" stop-color="#ec4899"/><stop offset="100%" stop-color="#fb7185"/>
-          </linearGradient>
-        </defs>
-        <g transform="rotate(-28 160 160)">
-          <ellipse cx="160" cy="160" rx="146" ry="38" stroke="url(#pinkRingGrad)" stroke-width="2.5" stroke-dasharray="8 5" opacity="0.8"/>
-          <ellipse cx="160" cy="160" rx="128" ry="30" stroke="#ff2a85" stroke-width="3" opacity="0.95"/>
-        </g>
-        <circle cx="160" cy="160" r="62" fill="url(#pinkSaturnSphere)" stroke="#ff2a85" stroke-width="1.8"/>
-        <clipPath id="saturnClip"><circle cx="160" cy="160" r="61"/></clipPath>
-        <g clip-path="url(#saturnClip)">
-          <ellipse cx="160" cy="142" rx="64" ry="12" fill="#ffffff" opacity="0.25"/>
-          <ellipse cx="160" cy="160" rx="64" ry="9" fill="#ff2a85" opacity="0.4"/>
-          <rect x="144" y="144" width="32" height="32" rx="6" fill="#080208" stroke="#ffffff" stroke-width="1.8"/>
-          <circle cx="160" cy="160" r="5" fill="#ff2a85"/><circle cx="160" cy="160" r="2.5" fill="#ffffff"/>
-        </g>
-        <g transform="rotate(-28 160 160)">
-          <path d="M 14 160 A 146 38 0 0 0 306 160" stroke="url(#pinkRingGrad)" stroke-width="3.5" stroke-linecap="round"/>
-          <circle cx="270" cy="172" r="3.5" fill="#ffffff"/><circle cx="62" cy="170" r="3" fill="#ff2a85"/>
-        </g>
-      </svg>
-    </div>
 
     <div class="relative w-full max-w-2xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-pink-500/50 shadow-[0_0_60px_rgba(7,6,12,0.9),0_0_35px_rgba(255,42,133,0.35)] max-h-[92vh] flex flex-col z-10">
       <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
@@ -340,20 +320,6 @@
               <option value="Web Platform">Web Platform (เว็บแอปพลิเคชัน)</option>
               <option value="Algo & Trading">Algo & Trading (บอท & การเงิน)</option>
               <option value="Tools & Cloud">Tools & Cloud (ซอฟต์แวร์ & เครื่องมือ)</option>
-              <option value="Frontend Development">Frontend Development (การพัฒนาเว็บฝั่งผู้ใช้)</option>
-              <option value="Backend Development">Backend Development (การพัฒนาเว็บฝั่งเซิร์ฟเวอร์/API)</option>
-              <option value="Full-Stack Development">Full-Stack Development (การพัฒนาเว็บครบวงจร)</option>
-              <option value="Mobile Development">Mobile Application (การพัฒนาแอปมือถือ)</option>
-              <option value="UI/UX Design">UI/UX Design & Prototyping (ออกแบบส่วนต่อประสาน)</option>
-              <option value="Database & Storage">Database & Data Modeling (ฐานข้อมูลและการจัดการข้อมูล)</option>
-              <option value="Security & Auth">Web Security & Authentication (ความปลอดภัยและการยืนยันตัวตน)</option>
-              <option value="System Architecture">System Architecture & API Design (สถาปัตยกรรมระบบ)</option>
-              <option value="Cloud & Infrastructure">Cloud Infrastructure (ระบบคลาวด์และโครงสร้างพื้นฐาน)</option>
-              <option value="DevOps & CI/CD">DevOps & CI/CD (ระบบอัตโนมัติและการส่งมอบซอฟต์แวร์)</option>
-              <option value="Tools & Environment">Tools & Environment (ซอฟต์แวร์ เครื่องมือ & สภาพแวดล้อม)</option>
-              <option value="Software Testing">Testing & Quality Assurance (การทดสอบระบบและคุณภาพ)</option>
-              <option value="Data & Analytics">Data Analytics & Machine Learning (การวิเคราะห์ข้อมูลและ AI)</option>
-              <option value="Open Source & Labs">Lab Experiments & Research (โครงงานทดลองและการวิจัย)</option>
             </select>
           </div>
         </div>
@@ -389,7 +355,7 @@
     </div>
   </div>
 
-  <!-- 4. MODAL จัดการกิจกรรม (ACTIVITIES) & อัปโหลดหลายรูปภาพ -->
+  <!-- 4. MODAL จัดการกิจกรรม (ACTIVITIES) -->
   <div id="activityModal" class="fixed inset-0 z-50 bg-[#05040a]/92 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
     <div class="relative w-full max-w-2xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-pink-500/50 shadow-[0_0_60px_rgba(7,6,12,0.9)] max-h-[92vh] flex flex-col z-10">
       <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
@@ -455,6 +421,125 @@
     </div>
   </div>
 
+  <!-- 5. MODAL LIST & MANAGE เกียรติบัตร (CERTIFICATES MANAGEMENT) -->
+  <div id="certListModal" class="fixed inset-0 z-50 bg-[#05040a]/92 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
+    <div class="relative w-full max-w-4xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-pink-500/50 shadow-[0_0_60px_rgba(7,6,12,0.9)] max-h-[92vh] flex flex-col z-10">
+      <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-sm">
+            <i class="fa-solid fa-award"></i>
+          </div>
+          <span class="font-orbitron font-bold text-white text-sm tracking-wider">
+            CERTIFICATES & ACCREDITATIONS // จัดการเกียรติบัตร
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openAddCertForm()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-black font-bold text-xs font-orbitron flex items-center gap-1.5 hover:opacity-90">
+            <i class="fa-solid fa-plus"></i> เพิ่มเกียรติบัตรใหม่
+          </button>
+          <button onclick="closeCertListModal()" class="w-8 h-8 rounded-lg bg-black/60 border border-pink-500/30 text-zinc-400 hover:text-white flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4">
+        <div class="overflow-x-auto rounded-2xl border border-pink-500/20 bg-black/60">
+          <table class="w-full text-left text-xs font-sans">
+            <thead class="bg-black/90 text-zinc-400 uppercase font-code border-b border-pink-500/20">
+              <tr>
+                <th class="py-3 px-4 w-16 text-center">ภาพ</th>
+                <th class="py-3 px-4">ชื่อเกียรติบัตร / รางวัล</th>
+                <th class="py-3 px-4">ผู้ออกใบรับรอง</th>
+                <th class="py-3 px-4">หมวดหมู่ / ปี</th>
+                <th class="py-3 px-4 text-right">คำสั่งการ</th>
+              </tr>
+            </thead>
+            <tbody id="certTableBody" class="divide-y divide-pink-500/10 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. MODAL ฟอร์มเพิ่ม/แก้ไข เกียรติบัตรเดี่ยว (CERT FORM) -->
+  <div id="certFormModal" class="fixed inset-0 z-50 bg-[#05040a]/94 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
+    <div class="relative w-full max-w-xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-rose-500/50 shadow-[0_0_60px_rgba(255,42,133,0.35)] max-h-[92vh] flex flex-col z-10">
+      <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
+        <span id="certFormTitle" class="font-orbitron font-bold text-white text-sm tracking-wider">
+          <i class="fa-solid fa-award text-rose-400 mr-2"></i> บันทึกเกียรติบัตร
+        </span>
+        <button onclick="closeCertFormModal()" class="w-8 h-8 rounded-lg bg-black/60 border border-pink-500/30 text-zinc-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="certForm" onsubmit="handleSaveCert(event)" class="p-6 overflow-y-auto space-y-4 text-xs font-mono">
+        <input type="hidden" id="editCertId" value="">
+
+        <!-- อัปโหลดภาพเกียรติบัตร -->
+        <div class="p-4 rounded-2xl bg-black/60 border border-pink-500/25 space-y-3">
+          <label class="text-xs font-bold text-pink-400 uppercase tracking-wider flex items-center justify-between">
+            <span><i class="fa-solid fa-image mr-1.5"></i> รูปภาพเกียรติบัตร *</span>
+            <span class="text-[10px] text-zinc-400 font-normal">อัปโหลดไฟล์ หรือวาง URL</span>
+          </label>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+            <label class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-black border border-dashed border-pink-500/40 hover:border-pink-400 text-zinc-300 hover:text-white cursor-pointer transition">
+              <i class="fa-solid fa-cloud-arrow-up text-pink-400 text-sm"></i>
+              <span class="text-[11px]">เลือกไฟล์จากเครื่อง</span>
+              <input type="file" id="certFileInput" accept="image/*" onchange="handleCertFileUpload(event)" class="hidden">
+            </label>
+            <input type="url" id="certUrlInput" oninput="handleCertUrlInput()" placeholder="หรือวางลิงก์รูปภาพ https://..." class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white placeholder-zinc-600 focus:outline-none focus:border-pink-400 text-[11px]">
+          </div>
+
+          <div id="certPreviewContainer" class="hidden relative rounded-xl overflow-hidden border border-pink-500/40 h-36 bg-black/80">
+            <img id="certPreview" src="" alt="Cert Preview" class="w-full h-full object-cover">
+            <button type="button" onclick="removeCertImage()" class="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-black/80 border border-rose-500/60 text-rose-400 hover:bg-rose-600 hover:text-white text-[10px] transition flex items-center gap-1">
+              <i class="fa-solid fa-trash-can"></i> ลบรูป
+            </button>
+          </div>
+          <input type="hidden" id="finalCertImageData" value="">
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 mb-1.5 uppercase font-bold">ชื่อเกียรติบัตร / ใบรับรอง *</label>
+          <input type="text" id="certTitle" required placeholder="เช่น Computer Vision & Object Detection Certificate" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 font-sans text-xs">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-zinc-300 mb-1.5 uppercase font-bold">องค์กร / สถาบันที่ออก (ISSUED BY) *</label>
+            <input type="text" id="certIssuer" required placeholder="เช่น ROBOFLOW หรือ CS MAEJO" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs">
+          </div>
+          <div>
+            <label class="block text-zinc-300 mb-1.5 uppercase font-bold">หมวดหมู่ / ขอบเขต</label>
+            <input type="text" id="certCategory" placeholder="เช่น Roboflow / Computer Vision" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-zinc-300 mb-1.5 uppercase font-bold">ปีที่ได้รับ (YEAR)</label>
+            <input type="text" id="certYear" placeholder="เช่น 2026" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 mb-1.5 uppercase font-bold">คำอธิบายรายละเอียด</label>
+          <textarea id="certDesc" rows="3" placeholder="ระบุเนื้อหาหลักสูตร รางวัลที่ได้ หรือผลสัมฤทธิ์..." class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 font-sans text-xs leading-relaxed"></textarea>
+        </div>
+
+        <div class="pt-4 border-t border-pink-500/25 flex items-center justify-end gap-3 font-mono">
+          <button type="button" onclick="closeCertFormModal()" class="px-4 py-2.5 rounded-xl bg-black/70 border border-pink-500/30 text-zinc-300 hover:text-white text-xs">ยกเลิก</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-black font-bold font-orbitron text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(255,42,133,0.4)]">
+            <i class="fa-solid fa-floppy-disk mr-1.5"></i> บันทึกเกียรติบัตร
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-black/95 border border-pink-500 text-white px-5 py-3 rounded-2xl text-xs font-mono shadow-[0_0_25px_rgba(255,42,133,0.4)] flex items-center gap-2.5">
     <i class="fa-solid fa-circle-check text-pink-400"></i>
@@ -470,7 +555,7 @@
       storeName: 'portfolio_store'
     });
 
-    const projectChannel = new BroadcastChannel('cosmic_projects_sync');
+    const syncChannel = new BroadcastChannel('cosmic_projects_sync');
 
     const defaultProjects = [
       {
@@ -505,7 +590,38 @@
       }
     ];
 
+    const defaultCertificates = [
+      {
+        id: 'cert-1',
+        title: 'Computer Vision & Object Detection Certificate',
+        category: 'Roboflow / Computer Vision',
+        issuer: 'ROBOFLOW',
+        year: '2026',
+        description: 'ผ่านการฝึกอบรมการติดป้ายกำกับชุดข้อมูล (Dataset Annotation) และพัฒนาโมเดล YOLO ตรวจจับศัตรูพืช',
+        imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
+      },
+      {
+        id: 'cert-2',
+        title: 'MQL5 Trading Bot Midterm Challenge',
+        category: 'Financial Algo & Trading',
+        issuer: 'CS MAEJO',
+        year: '2026',
+        description: 'ได้รับรางวัลผลงานการออกแบบบอทเทรดอัลกอริทึมทองคำด้วย ADX & Bollinger Bands บน MetaTrader 5',
+        imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
+      },
+      {
+        id: 'cert-3',
+        title: 'Network Security & Encryption Achievement',
+        category: 'Security & Cryptography',
+        issuer: 'MJU CS DEPT',
+        year: '2026',
+        description: 'ผ่านเกณฑ์การทดสอบการเข้ารหัสข้อมูล Ciphers, Simplified DES, SHA-256 และความปลอดภัยในระบบเครือข่าย',
+        imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
+      }
+    ];
+
     let projects = [];
+    let certificates = [];
 
     // Background Canvas
     (function initHudCanvas() {
@@ -563,72 +679,11 @@
       draw();
     })();
 
-    // Modal Dots Canvas
-    let renderModalDots = null;
-    (function initModalDotsCanvas() {
-      const c = document.getElementById('modal-cosmic-dots-canvas');
-      if (!c) return;
-      const ctx = c.getContext('2d');
-      let dots = [];
-
-      function setup() {
-        c.width = c.parentElement ? c.parentElement.clientWidth : window.innerWidth;
-        c.height = c.parentElement ? c.parentElement.clientHeight : window.innerHeight;
-        dots = [];
-        for (let i = 0; i < 40; i++) {
-          dots.push({
-            x: Math.random() * c.width,
-            y: Math.random() * c.height,
-            vx: (Math.random() - 0.5) * 0.4,
-            vy: (Math.random() - 0.5) * 0.4,
-            r: Math.random() * 1.6 + 0.8,
-            alpha: Math.random() * 0.6 + 0.2
-          });
-        }
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, c.width, c.height);
-        dots.forEach((d, i) => {
-          d.x += d.vx;
-          d.y += d.vy;
-          if (d.x < 0) d.x = c.width;
-          if (d.x > c.width) d.x = 0;
-          if (d.y < 0) d.y = c.height;
-          if (d.y > c.height) d.y = 0;
-
-          ctx.beginPath();
-          ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 42, 133, ${d.alpha})`;
-          ctx.fill();
-
-          for (let j = i + 1; j < dots.length; j++) {
-            const d2 = dots[j];
-            const dist = Math.hypot(d.x - d2.x, d.y - d2.y);
-            if (dist < 80) {
-              ctx.beginPath();
-              ctx.moveTo(d.x, d.y);
-              ctx.lineTo(d2.x, d2.y);
-              ctx.strokeStyle = `rgba(255, 42, 133, ${(1 - dist / 80) * 0.2})`;
-              ctx.stroke();
-            }
-          }
-        });
-        requestAnimationFrame(draw);
-      }
-
-      renderModalDots = function() {
-        setup();
-        draw();
-      };
-      window.addEventListener('resize', setup);
-    })();
-
     function checkAuth() {
       if (sessionStorage.getItem('is_cosmic_admin') === 'true') {
         document.getElementById('authGate').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
-        loadProjects();
+        loadAllData();
       } else {
         document.getElementById('authGate').classList.remove('hidden');
         document.getElementById('adminPanel').classList.add('hidden');
@@ -653,6 +708,11 @@
       checkAuth();
     }
 
+    async function loadAllData() {
+      await loadProjects();
+      await loadCertificates();
+    }
+
     async function loadProjects() {
       try {
         let stored = await localforage.getItem('cosmic_projects_store');
@@ -674,7 +734,7 @@
     async function saveProjects() {
       try {
         await localforage.setItem('cosmic_projects_store', projects);
-        projectChannel.postMessage({ type: 'PROJECTS_UPDATED' });
+        syncChannel.postMessage({ type: 'PROJECTS_UPDATED' });
         renderAdminTable();
         updateDashboardStats();
         return true;
@@ -689,6 +749,7 @@
       document.getElementById('statTotal').textContent = projects.length;
       document.getElementById('statAI').textContent = projects.filter(p => p.category === 'AI & Vision').length;
       document.getElementById('statWeb').textContent = projects.filter(p => p.category === 'Web Platform').length;
+      document.getElementById('statCerts').textContent = certificates.length;
     }
 
     function filterByStatCategory(cat) {
@@ -796,11 +857,8 @@
       document.getElementById('editProjectId').value = '';
       removeSelectedImage();
       document.getElementById('modalHeaderTitle').textContent = 'MISSION CONFIGURATION // เพิ่มผลงานใหม่';
-      
       document.getElementById('projectModal').classList.remove('hidden');
       document.getElementById('projectModal').classList.add('flex');
-      
-      if (renderModalDots) renderModalDots();
     }
 
     function openEditProjectModal(id) {
@@ -824,22 +882,15 @@
       document.getElementById('modalHeaderTitle').textContent = `MISSION CONFIGURATION // EDIT: ${p.title}`;
       document.getElementById('projectModal').classList.remove('hidden');
       document.getElementById('projectModal').classList.add('flex');
-      
-      if (renderModalDots) renderModalDots();
     }
 
     function closeProjectModal() {
       document.getElementById('projectModal').classList.add('hidden');
       document.getElementById('projectModal').classList.remove('flex');
-      document.getElementById('projectForm').reset();
-      removeSelectedImage();
     }
 
     async function handleSaveProject(e) {
       e.preventDefault();
-
-      if (!Array.isArray(projects)) projects = [];
-
       const editId = document.getElementById('editProjectId').value;
       const title = document.getElementById('projTitle').value.trim();
       const category = document.getElementById('projCategory').value;
@@ -849,46 +900,27 @@
       const githubUrl = document.getElementById('projGithubUrl').value.trim() || '#';
       const imageUrl = document.getElementById('finalImageData').value || '';
 
-      if (!title || !summary) {
-        showToast('⚠️ กรุณากรอกชื่อและคำอธิบายผลงาน');
-        return;
-      }
-
       if (editId) {
         const index = projects.findIndex(p => String(p.id) === String(editId));
         if (index !== -1) {
-          projects[index] = {
-            ...projects[index],
-            title, category, summary, tags, demoUrl, githubUrl, imageUrl
-          };
-          const ok = await saveProjects();
-          if (ok) {
-            showToast('💾 อัปเดตข้อมูลภารกิจเรียบร้อย!');
-            closeProjectModal();
-          }
-        }
-      } else {
-        const newProj = {
-          id: 'p-' + Date.now(),
-          title, category, summary, tags, demoUrl, githubUrl, imageUrl
-        };
-        projects.unshift(newProj);
-        const ok = await saveProjects();
-        if (ok) {
-          showToast('🚀 ส่งผลงานใหม่ขึ้นสู่วงโคจรแล้ว!');
+          projects[index] = { ...projects[index], title, category, summary, tags, demoUrl, githubUrl, imageUrl };
+          await saveProjects();
+          showToast('💾 อัปเดตข้อมูลภารกิจเรียบร้อย!');
           closeProjectModal();
         }
+      } else {
+        const newProj = { id: 'p-' + Date.now(), title, category, summary, tags, demoUrl, githubUrl, imageUrl };
+        projects.unshift(newProj);
+        await saveProjects();
+        showToast('🚀 ส่งผลงานใหม่ขึ้นสู่วงโคจรแล้ว!');
+        closeProjectModal();
       }
     }
 
     async function cloneProject(id) {
       const p = projects.find(item => String(item.id) === String(id));
       if (!p) return;
-      const cloned = {
-        ...p,
-        id: 'p-' + Date.now(),
-        title: p.title + ' (Copy)'
-      };
+      const cloned = { ...p, id: 'p-' + Date.now(), title: p.title + ' (Copy)' };
       projects.unshift(cloned);
       await saveProjects();
       showToast('📋 คัดลอกผลงานเรียบร้อย');
@@ -903,7 +935,185 @@
     }
 
     // ==========================================
-    // ACTIVITIES SYSTEM (เพิ่มและจัดการหลายรูปภาพ)
+    // CERTIFICATES SYSTEM (ระบบจัดการเกียรติบัตร)
+    // ==========================================
+    async function loadCertificates() {
+      try {
+        let stored = await localforage.getItem('cosmic_certificates_store');
+        certificates = Array.isArray(stored) && stored.length > 0 ? stored : [...defaultCertificates];
+        await localforage.setItem('cosmic_certificates_store', certificates);
+      } catch(e) {
+        certificates = [...defaultCertificates];
+      }
+      renderCertTable();
+      updateDashboardStats();
+    }
+
+    async function saveCertificates() {
+      try {
+        await localforage.setItem('cosmic_certificates_store', certificates);
+        syncChannel.postMessage({ type: 'CERTIFICATES_UPDATED' });
+        renderCertTable();
+        updateDashboardStats();
+        return true;
+      } catch(err) {
+        showToast('❌ บันทึกเกียรติบัตรไม่สำเร็จ');
+        return false;
+      }
+    }
+
+    function openCertListModal() {
+      renderCertTable();
+      document.getElementById('certListModal').classList.remove('hidden');
+      document.getElementById('certListModal').classList.add('flex');
+    }
+
+    function closeCertListModal() {
+      document.getElementById('certListModal').classList.add('hidden');
+      document.getElementById('certListModal').classList.remove('flex');
+    }
+
+    function renderCertTable() {
+      const tbody = document.getElementById('certTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (certificates.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-zinc-500 font-mono">ยังไม่มีข้อมูลเกียรติบัตรในระบบ</td></tr>`;
+        return;
+      }
+
+      certificates.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-white/[0.02] transition';
+        const thumb = c.imageUrl ? `<img src="${c.imageUrl}" class="w-10 h-10 rounded-lg object-cover border border-rose-500/40">` : `<div class="w-10 h-10 rounded-lg bg-black border border-rose-500/20 text-rose-400 flex items-center justify-center text-xs"><i class="fa-solid fa-award"></i></div>`;
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center">${thumb}</td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-white text-xs">${c.title}</div>
+            <div class="text-[11px] text-zinc-400 line-clamp-1">${c.description || ''}</div>
+          </td>
+          <td class="py-3 px-4 text-rose-400 font-mono text-xs">${c.issuer || '-'}</td>
+          <td class="py-3 px-4 font-mono text-zinc-300 text-xs">${c.category || ''} (${c.year || 'N/A'})</td>
+          <td class="py-3 px-4 text-right whitespace-nowrap">
+            <button onclick="editCert('${c.id}')" class="px-2.5 py-1 rounded-lg bg-pink-500/10 border border-pink-500/30 text-pink-300 hover:bg-pink-500 hover:text-black transition text-xs mr-1" title="แก้ไข">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="deleteCert('${c.id}')" class="px-2.5 py-1 rounded-lg bg-rose-950/40 border border-rose-500/40 text-rose-400 hover:bg-rose-600 hover:text-white transition text-xs" title="ลบ">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddCertForm() {
+      document.getElementById('certForm').reset();
+      document.getElementById('editCertId').value = '';
+      removeCertImage();
+      document.getElementById('certFormTitle').innerHTML = '<i class="fa-solid fa-award text-rose-400 mr-2"></i> เพิ่มเกียรติบัตรใหม่';
+      document.getElementById('certFormModal').classList.remove('hidden');
+      document.getElementById('certFormModal').classList.add('flex');
+    }
+
+    function closeCertFormModal() {
+      document.getElementById('certFormModal').classList.add('hidden');
+      document.getElementById('certFormModal').classList.remove('flex');
+    }
+
+    function editCert(id) {
+      const c = certificates.find(item => String(item.id) === String(id));
+      if (!c) return;
+
+      document.getElementById('editCertId').value = c.id;
+      document.getElementById('certTitle').value = c.title || '';
+      document.getElementById('certIssuer').value = c.issuer || '';
+      document.getElementById('certCategory').value = c.category || '';
+      document.getElementById('certYear').value = c.year || '';
+      document.getElementById('certDesc').value = c.description || '';
+
+      if (c.imageUrl) {
+        setCertImagePreview(c.imageUrl);
+      } else {
+        removeCertImage();
+      }
+
+      document.getElementById('certFormTitle').innerHTML = `<i class="fa-solid fa-award text-rose-400 mr-2"></i> แก้ไข: ${c.title}`;
+      document.getElementById('certFormModal').classList.remove('hidden');
+      document.getElementById('certFormModal').classList.add('flex');
+    }
+
+    function handleCertFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        setCertImagePreview(evt.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleCertUrlInput() {
+      const url = document.getElementById('certUrlInput').value.trim();
+      if (url) setCertImagePreview(url);
+    }
+
+    function setCertImagePreview(src) {
+      document.getElementById('finalCertImageData').value = src;
+      document.getElementById('certPreview').src = src;
+      document.getElementById('certPreviewContainer').classList.remove('hidden');
+    }
+
+    function removeCertImage() {
+      document.getElementById('finalCertImageData').value = '';
+      document.getElementById('certUrlInput').value = '';
+      document.getElementById('certFileInput').value = '';
+      document.getElementById('certPreviewContainer').classList.add('hidden');
+    }
+
+    async function handleSaveCert(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editCertId').value;
+      const title = document.getElementById('certTitle').value.trim();
+      const issuer = document.getElementById('certIssuer').value.trim();
+      const category = document.getElementById('certCategory').value.trim();
+      const year = document.getElementById('certYear').value.trim() || '2026';
+      const description = document.getElementById('certDesc').value.trim();
+      const imageUrl = document.getElementById('finalCertImageData').value;
+
+      if (!imageUrl) {
+        showToast('⚠️ กรุณาอัปโหลดรูปภาพเกียรติบัตร');
+        return;
+      }
+
+      if (editId) {
+        const index = certificates.findIndex(c => String(c.id) === String(editId));
+        if (index !== -1) {
+          certificates[index] = { ...certificates[index], title, issuer, category, year, description, imageUrl };
+          await saveCertificates();
+          showToast('💾 อัปเดตข้อมูลเกียรติบัตรเรียบร้อย!');
+          closeCertFormModal();
+        }
+      } else {
+        const newCert = { id: 'cert-' + Date.now(), title, issuer, category, year, description, imageUrl };
+        certificates.unshift(newCert);
+        await saveCertificates();
+        showToast('🏆 เพิ่มเกียรติบัตรใหม่เรียบร้อยแล้ว!');
+        closeCertFormModal();
+      }
+    }
+
+    async function deleteCert(id) {
+      if (confirm('ต้องการลบเกียรติบัตรนี้ออกจากระบบหรือไม่?')) {
+        certificates = certificates.filter(c => String(c.id) !== String(id));
+        await saveCertificates();
+        showToast('🗑 ลบเกียรติบัตรเรียบร้อย');
+      }
+    }
+
+    // ==========================================
+    // ACTIVITIES SYSTEM
     // ==========================================
     let currentActImages = [];
 
@@ -926,7 +1136,6 @@
       if (!files.length) return;
 
       showToast(`🔄 กำลังโหลดรูปภาพ ${files.length} รูป...`);
-
       files.forEach(file => {
         const reader = new FileReader();
         reader.onload = function(evt) {
@@ -977,15 +1186,15 @@
 
       activities.unshift(newAct);
       await localforage.setItem('cosmic_activities_store', activities);
-      
-      projectChannel.postMessage({ type: 'ACTIVITIES_UPDATED' });
-
+      syncChannel.postMessage({ type: 'ACTIVITIES_UPDATED' });
       showToast('🚀 บันทึกกิจกรรมพร้อมรูปภาพเรียบร้อย!');
       closeActivityModal();
     }
 
+    // Backup & Restore
     function exportDataJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
+      const fullBackup = { projects, certificates };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup, null, 2));
       const a = document.createElement('a');
       a.href = dataStr;
       a.download = `kuriya-portfolio-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -1003,8 +1212,13 @@
           if (Array.isArray(parsed)) {
             projects = parsed;
             await saveProjects();
-            showToast('✅ กู้คืนข้อมูลเข้าระบบเรียบร้อยแล้ว!');
+          } else if (parsed && parsed.projects) {
+            projects = parsed.projects || [];
+            certificates = parsed.certificates || [];
+            await saveProjects();
+            await saveCertificates();
           }
+          showToast('✅ กู้คืนข้อมูลเข้าระบบเรียบร้อยแล้ว!');
         } catch(err) {
           showToast('❌ รูปแบบไฟล์ JSON ไม่ถูกต้อง');
         }
@@ -1015,7 +1229,9 @@
     async function resetFactoryData() {
       if (confirm('ต้องการรีเซ็ตข้อมูลผลงานกลับเป็นค่าเริ่มต้นหรือไม่?')) {
         projects = [...defaultProjects];
+        certificates = [...defaultCertificates];
         await saveProjects();
+        await saveCertificates();
         showToast('🔄 รีเซ็ตข้อมูลกลับสู่ค่าเริ่มต้นเรียบร้อย');
       }
     }
