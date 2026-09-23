@@ -292,7 +292,7 @@
         </select>
       </div>
 
-      <!-- 3-Column Social Feed Grid แถวละ 3 โพสต์ -->
+      <!-- 3-Column Social Feed Grid -->
       <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
 
       <div id="noProjectsMessage" class="hidden text-center py-20">
@@ -417,7 +417,7 @@
     </div>
   </section>
 
-  <!-- CERTIFICATES SECTION (เชื่อมต่อระบบไดนามิกอัตโนมัติ) -->
+  <!-- CERTIFICATES SECTION -->
   <section id="certificates" class="py-24 border-t border-pink-500/20 bg-black/40 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-2xl mx-auto mb-14">
@@ -1224,29 +1224,29 @@
     const defaultCertificates = [
       {
         id: 'cert-1',
-        title: 'Computer Vision & Object Detection Certificate',
-        category: 'Roboflow / Computer Vision',
-        issuer: 'ROBOFLOW',
+        title: 'ด้านความมั่นคงปลอดภัยไซเบอร์ ระดับพื้นฐาน (Cybersecurity Foundation Course)',
+        category: 'Cybersecurity & Digital Safety',
+        issuer: 'สกมช. (NCSA)',
         year: '2026',
-        description: 'ผ่านการฝึกอบรมการติดป้ายกำกับชุดข้อมูล (Dataset Annotation) และพัฒนาโมเดล YOLO ตรวจจับศัตรูพืช',
+        description: 'ผ่านการอบรมหลักสูตรความมั่นคงปลอดภัยไซเบอร์ระดับพื้นฐาน ผ่านระบบ NCSA e-Learning รวม 21 ชั่วโมง',
         imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
       },
       {
         id: 'cert-2',
-        title: 'MQL5 Trading Bot Midterm Challenge',
-        category: 'Financial Algo & Trading',
-        issuer: 'CS MAEJO',
+        title: 'AI + IoT with Scratch/mBlock5 (Coding Thailand 2026)',
+        category: 'AI, IoT & Smart Systems',
+        issuer: 'depa',
         year: '2026',
-        description: 'ได้รับรางวัลผลงานการออกแบบบอทเทรดอัลกอริทึมทองคำด้วย ADX & Bollinger Bands บน MetaTrader 5',
+        description: 'ผ่านการอบรมออนไลน์หลักสูตร AI + IoT ภายใต้โครงการ Coding Thailand 2026: AI Inspires the Future',
         imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
       },
       {
         id: 'cert-3',
-        title: 'Network Security & Encryption Achievement',
-        category: 'Security & Cryptography',
-        issuer: 'MJU CS DEPT',
+        title: 'LINK Certified Network Cabling for Engineering (LCCE)',
+        category: 'Network Infrastructure & Cabling',
+        issuer: 'LINK ASIA LIMITED',
         year: '2026',
-        description: 'ผ่านเกณฑ์การทดสอบการเข้ารหัสข้อมูล Ciphers, Simplified DES, SHA-256 และความปลอดภัยในระบบเครือข่าย',
+        description: 'ผ่านการอบรมและรับรองมาตรฐานหลักสูตรวิศวกรรมระบบสายสัญญาณเครือข่ายคอมพิวเตอร์ตามมาตรฐานสากล',
         imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
       }
     ];
@@ -1304,7 +1304,9 @@
       });
     }
 
-    // 5. Activities Management
+    // ==========================================
+    // 5. Activities Management (ระบบดึงข้อมูลกิจกรรม)
+    // ==========================================
     const defaultActivities = [
       {
         id: 'act-1',
@@ -1333,7 +1335,7 @@
     async function loadActivities() {
       try {
         let stored = await localforage.getItem('cosmic_activities_store');
-        activities = stored && Array.isArray(stored) && stored.length > 0 ? stored : defaultActivities;
+        activities = Array.isArray(stored) && stored.length > 0 ? stored : defaultActivities;
         await localforage.setItem('cosmic_activities_store', activities);
       } catch (e) {
         activities = defaultActivities;
@@ -1345,6 +1347,11 @@
       const container = document.getElementById('activitiesGrid');
       if (!container) return;
       container.innerHTML = '';
+
+      if (activities.length === 0) {
+        container.innerHTML = `<div class="col-span-1 md:col-span-2 text-center py-12 text-zinc-500 font-mono">ยังไม่มีข้อมูลกิจกรรมในระบบ</div>`;
+        return;
+      }
 
       activities.forEach((act, actIdx) => {
         const card = document.createElement('div');
@@ -1358,8 +1365,8 @@
         if (act.images && act.images.length > 0) {
           const sliderId = `slider-${act.id || actIdx}`;
           const slides = act.images.map((imgUrl, i) => `
-            <div class="min-w-[220px] sm:min-w-[250px] h-40 rounded-2xl overflow-hidden bg-black/80 border border-pink-500/30 relative shrink-0 group/img cursor-pointer" onclick="openMediaPreview('${imgUrl}', '${act.title} (ภาพที่ ${i+1})')">
-              <img src="${imgUrl}" alt="${act.title}" class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500">
+            <div class="min-w-[220px] sm:min-w-[250px] h-40 rounded-2xl overflow-hidden bg-black/80 border border-pink-500/30 relative shrink-0 group/img cursor-pointer" onclick="openMediaPreview('${imgUrl}', '${escapeHtml(act.title)} (ภาพที่ ${i+1})')">
+              <img src="${imgUrl}" alt="${escapeHtml(act.title)}" class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500">
               <div class="absolute inset-0 bg-black/30 group-hover/img:bg-transparent transition flex items-center justify-center">
                 <span class="opacity-0 group-hover/img:opacity-100 transition px-2.5 py-1 rounded-lg bg-black/80 border border-pink-500/40 text-[10px] font-mono text-pink-300">
                   <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> ดูรูปใหญ่
@@ -1397,15 +1404,15 @@
                   <i class="fa-solid ${act.icon || 'fa-users-gear'}"></i>
                 </div>
                 <div>
-                  <h4 class="font-orbitron font-bold text-white text-base">${act.title}</h4>
-                  <span class="text-xs font-mono text-pink-400">${act.location || ''}</span>
+                  <h4 class="font-orbitron font-bold text-white text-base">${escapeHtml(act.title)}</h4>
+                  <span class="text-xs font-mono text-pink-400">${escapeHtml(act.location || '')}</span>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-pink-500/20 text-pink-300 text-[10px] font-mono">${act.role || 'MEMBER'}</span>
+              <span class="px-2.5 py-1 rounded-full bg-pink-500/20 text-pink-300 text-[10px] font-mono">${escapeHtml(act.role || 'MEMBER')}</span>
             </div>
 
             <p class="text-zinc-400 text-xs leading-relaxed font-light mt-3">
-              ${act.description}
+              ${escapeHtml(act.description)}
             </p>
 
             ${imagesSliderHtml}

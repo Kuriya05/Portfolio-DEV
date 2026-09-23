@@ -122,7 +122,7 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
-      <!-- 4-Card Stats HUD -->
+      <!-- 4-Card Stats HUD (เพิ่มกล่องสถิติกิจกรรม) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 font-mono">
         <div onclick="filterByStatCategory('all')" class="cosmic-glass px-4 py-3 rounded-2xl border border-pink-500/25 cursor-pointer hover:border-pink-400 hover:bg-pink-500/5 transition group">
           <div class="flex items-center justify-between">
@@ -150,19 +150,6 @@
           </div>
         </div>
 
-        <div onclick="filterByStatCategory('Web Platform')" class="cosmic-glass px-4 py-3 rounded-2xl border border-pink-500/25 cursor-pointer hover:border-pink-400 hover:bg-pink-500/5 transition group">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wider group-hover:text-purple-300 transition">WEB PLATFORM</span>
-            <div class="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/40 flex items-center justify-center text-purple-400 text-xs group-hover:scale-105 transition">
-              <i class="fa-solid fa-network-wired"></i>
-            </div>
-          </div>
-          <div class="flex items-baseline gap-2 mt-1">
-            <span id="statWeb" class="text-2xl font-black text-purple-300 font-orbitron">0</span>
-            <span class="text-[10px] text-purple-400/70 font-code">เว็บ & แพลตฟอร์ม</span>
-          </div>
-        </div>
-
         <div onclick="openCertListModal()" class="cosmic-glass px-4 py-3 rounded-2xl border border-pink-500/25 cursor-pointer hover:border-pink-400 hover:bg-pink-500/5 transition group">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-rose-400 uppercase tracking-wider group-hover:text-rose-300 transition">CERTIFICATES</span>
@@ -173,6 +160,19 @@
           <div class="flex items-baseline gap-2 mt-1">
             <span id="statCerts" class="text-2xl font-black text-rose-300 font-orbitron">0</span>
             <span class="text-[10px] text-rose-400/70 font-code">เกียรติบัตร</span>
+          </div>
+        </div>
+
+        <div onclick="openActivityListModal()" class="cosmic-glass px-4 py-3 rounded-2xl border border-pink-500/25 cursor-pointer hover:border-purple-400 hover:bg-purple-500/5 transition group">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wider group-hover:text-purple-300 transition">ACTIVITIES</span>
+            <div class="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/40 flex items-center justify-center text-purple-400 text-xs group-hover:scale-105 transition">
+              <i class="fa-solid fa-compass"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="statActivities" class="text-2xl font-black text-purple-300 font-orbitron">0</span>
+            <span class="text-[10px] text-purple-400/70 font-code">กิจกรรม</span>
           </div>
         </div>
       </div>
@@ -198,14 +198,14 @@
           </div>
           
           <div class="flex flex-wrap items-center gap-2.5">
-            <!-- ปุ่มจัดการเกียรติบัตร -->
+            <!-- ปุ่มจัดการกิจกรรม & รูปภาพ -->
+            <button onclick="openActivityListModal()" class="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-500/50 text-purple-300 hover:bg-purple-500 hover:text-black text-xs font-mono flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-compass"></i>
+              <span>จัดการกิจกรรม</span>
+            </button>
             <button onclick="openCertListModal()" class="px-3.5 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 hover:bg-rose-500 hover:text-black text-xs font-mono flex items-center gap-1.5 transition">
               <i class="fa-solid fa-award"></i>
               <span>จัดการเกียรติบัตร</span>
-            </button>
-            <button onclick="openActivityModal()" class="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-500/50 text-purple-300 hover:bg-purple-500 hover:text-black text-xs font-mono flex items-center gap-1.5 transition">
-              <i class="fa-solid fa-camera-retro"></i>
-              <span>เพิ่มกิจกรรม & รูปภาพ</span>
             </button>
             <button onclick="exportDataJSON()" class="px-3.5 py-2.5 rounded-xl bg-black/70 border border-pink-500/30 text-zinc-300 hover:text-white text-xs font-mono flex items-center gap-1.5 transition hover:border-pink-400">
               <i class="fa-solid fa-download text-pink-400 text-xs"></i>
@@ -223,7 +223,7 @@
           </div>
         </div>
 
-        <!-- Table -->
+        <!-- Table Projects -->
         <div class="overflow-x-auto rounded-2xl border border-pink-500/20 relative z-10 bg-black/60">
           <table class="w-full text-left text-xs font-sans">
             <thead class="bg-black/90 text-zinc-400 uppercase font-code border-b border-pink-500/20">
@@ -256,9 +256,6 @@
 
   <!-- 3. MODAL จัดการผลงาน (PROJECTS) -->
   <div id="projectModal" class="fixed inset-0 z-50 bg-[#05040a]/92 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
-    <canvas id="modal-cosmic-dots-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ff2a8510_1px,transparent_1px),linear-gradient(to_bottom,#ff2a8510_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none z-0"></div>
-
     <div class="relative w-full max-w-2xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-pink-500/50 shadow-[0_0_60px_rgba(7,6,12,0.9),0_0_35px_rgba(255,42,133,0.35)] max-h-[92vh] flex flex-col z-10">
       <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
         <div class="flex items-center gap-2.5">
@@ -355,12 +352,53 @@
     </div>
   </div>
 
-  <!-- 4. MODAL จัดการกิจกรรม (ACTIVITIES) -->
+  <!-- 4. MODAL LIST & MANAGE กิจกรรม (ACTIVITY MANAGEMENT TABLE) -->
+  <div id="activityListModal" class="fixed inset-0 z-50 bg-[#05040a]/92 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
+    <div class="relative w-full max-w-4xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-purple-500/50 shadow-[0_0_60px_rgba(7,6,12,0.9)] max-h-[92vh] flex flex-col z-10">
+      <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 text-sm">
+            <i class="fa-solid fa-compass"></i>
+          </div>
+          <span class="font-orbitron font-bold text-white text-sm tracking-wider">
+            ACTIVITIES LOG // จัดการกิจกรรม & รูปภาพ
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openActivityModal()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-black font-bold text-xs font-orbitron flex items-center gap-1.5 hover:opacity-90">
+            <i class="fa-solid fa-plus"></i> เพิ่มกิจกรรมใหม่
+          </button>
+          <button onclick="closeActivityListModal()" class="w-8 h-8 rounded-lg bg-black/60 border border-pink-500/30 text-zinc-400 hover:text-white flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4">
+        <div class="overflow-x-auto rounded-2xl border border-pink-500/20 bg-black/60">
+          <table class="w-full text-left text-xs font-sans">
+            <thead class="bg-black/90 text-zinc-400 uppercase font-code border-b border-pink-500/20">
+              <tr>
+                <th class="py-3 px-4 w-16 text-center">ภาพ</th>
+                <th class="py-3 px-4">ชื่อกิจกรรม & รายละเอียด</th>
+                <th class="py-3 px-4">บทบาท</th>
+                <th class="py-3 px-4">สถานที่ / ปี</th>
+                <th class="py-3 px-4 text-right">คำสั่งการ</th>
+              </tr>
+            </thead>
+            <tbody id="activityTableBody" class="divide-y divide-pink-500/10 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. MODAL ฟอร์มเพิ่ม/แก้ไข กิจกรรม (ACTIVITY FORM) -->
   <div id="activityModal" class="fixed inset-0 z-50 bg-[#05040a]/92 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
     <div class="relative w-full max-w-2xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-pink-500/50 shadow-[0_0_60px_rgba(7,6,12,0.9)] max-h-[92vh] flex flex-col z-10">
       <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
-        <span class="font-orbitron font-bold text-white text-sm tracking-wider">
-          <i class="fa-solid fa-compass text-pink-400 mr-2"></i> ACTIVITY LOG // จัดการกิจกรรม & รูปภาพ
+        <span id="actModalHeaderTitle" class="font-orbitron font-bold text-white text-sm tracking-wider">
+          <i class="fa-solid fa-compass text-pink-400 mr-2"></i> บันทึกกิจกรรม & รูปภาพ
         </span>
         <button onclick="closeActivityModal()" class="w-8 h-8 rounded-lg bg-black/60 border border-pink-500/30 text-zinc-400 hover:text-white flex items-center justify-center">
           <i class="fa-solid fa-xmark"></i>
@@ -421,7 +459,7 @@
     </div>
   </div>
 
-  <!-- 5. MODAL LIST & MANAGE เกียรติบัตร (CERTIFICATES MANAGEMENT) -->
+  <!-- 6. MODAL LIST & MANAGE เกียรติบัตร (CERTIFICATES MANAGEMENT) -->
   <div id="certListModal" class="fixed inset-0 z-50 bg-[#05040a]/92 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
     <div class="relative w-full max-w-4xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-pink-500/50 shadow-[0_0_60px_rgba(7,6,12,0.9)] max-h-[92vh] flex flex-col z-10">
       <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
@@ -462,7 +500,7 @@
     </div>
   </div>
 
-  <!-- 6. MODAL ฟอร์มเพิ่ม/แก้ไข เกียรติบัตรเดี่ยว (CERT FORM) -->
+  <!-- 7. MODAL ฟอร์มเพิ่ม/แก้ไข เกียรติบัตรเดี่ยว (CERT FORM) -->
   <div id="certFormModal" class="fixed inset-0 z-50 bg-[#05040a]/94 backdrop-blur-2xl hidden items-center justify-center p-4 overflow-hidden">
     <div class="relative w-full max-w-xl rounded-3xl overflow-hidden backdrop-blur-2xl bg-[#0d0918]/95 border border-rose-500/50 shadow-[0_0_60px_rgba(255,42,133,0.35)] max-h-[92vh] flex flex-col z-10">
       <div class="px-6 py-4 border-b border-pink-500/30 flex items-center justify-between bg-black/80 font-mono">
@@ -504,17 +542,17 @@
 
         <div>
           <label class="block text-zinc-300 mb-1.5 uppercase font-bold">ชื่อเกียรติบัตร / ใบรับรอง *</label>
-          <input type="text" id="certTitle" required placeholder="เช่น Computer Vision & Object Detection Certificate" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 font-sans text-xs">
+          <input type="text" id="certTitle" required placeholder="เช่น ด้านความมั่นคงปลอดภัยไซเบอร์ ระดับพื้นฐาน" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 font-sans text-xs">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-zinc-300 mb-1.5 uppercase font-bold">องค์กร / สถาบันที่ออก (ISSUED BY) *</label>
-            <input type="text" id="certIssuer" required placeholder="เช่น ROBOFLOW หรือ CS MAEJO" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs">
+            <input type="text" id="certIssuer" required placeholder="เช่น สกมช. (NCSA) หรือ ROBOFLOW" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs">
           </div>
           <div>
             <label class="block text-zinc-300 mb-1.5 uppercase font-bold">หมวดหมู่ / ขอบเขต</label>
-            <input type="text" id="certCategory" placeholder="เช่น Roboflow / Computer Vision" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs">
+            <input type="text" id="certCategory" placeholder="เช่น Cybersecurity & Digital Safety" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-pink-500/30 text-white focus:outline-none focus:border-pink-400 text-xs">
           </div>
         </div>
 
@@ -593,35 +631,59 @@
     const defaultCertificates = [
       {
         id: 'cert-1',
-        title: 'Computer Vision & Object Detection Certificate',
-        category: 'Roboflow / Computer Vision',
-        issuer: 'ROBOFLOW',
+        title: 'ด้านความมั่นคงปลอดภัยไซเบอร์ ระดับพื้นฐาน (Cybersecurity Foundation Course)',
+        category: 'Cybersecurity & Digital Safety',
+        issuer: 'สกมช. (NCSA)',
         year: '2026',
-        description: 'ผ่านการฝึกอบรมการติดป้ายกำกับชุดข้อมูล (Dataset Annotation) และพัฒนาโมเดล YOLO ตรวจจับศัตรูพืช',
+        description: 'ผ่านการอบรมหลักสูตรความมั่นคงปลอดภัยไซเบอร์ระดับพื้นฐาน ผ่านระบบ NCSA e-Learning รวม 21 ชั่วโมง',
         imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
       },
       {
         id: 'cert-2',
-        title: 'MQL5 Trading Bot Midterm Challenge',
-        category: 'Financial Algo & Trading',
-        issuer: 'CS MAEJO',
+        title: 'AI + IoT with Scratch/mBlock5 (Coding Thailand 2026)',
+        category: 'AI, IoT & Smart Systems',
+        issuer: 'depa',
         year: '2026',
-        description: 'ได้รับรางวัลผลงานการออกแบบบอทเทรดอัลกอริทึมทองคำด้วย ADX & Bollinger Bands บน MetaTrader 5',
+        description: 'ผ่านการอบรมออนไลน์หลักสูตร AI + IoT ภายใต้โครงการ Coding Thailand 2026: AI Inspires the Future',
         imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
       },
       {
         id: 'cert-3',
-        title: 'Network Security & Encryption Achievement',
-        category: 'Security & Cryptography',
-        issuer: 'MJU CS DEPT',
+        title: 'LINK Certified Network Cabling for Engineering (LCCE)',
+        category: 'Network Infrastructure & Cabling',
+        issuer: 'LINK ASIA LIMITED',
         year: '2026',
-        description: 'ผ่านเกณฑ์การทดสอบการเข้ารหัสข้อมูล Ciphers, Simplified DES, SHA-256 และความปลอดภัยในระบบเครือข่าย',
+        description: 'ผ่านการอบรมและรับรองมาตรฐานหลักสูตรวิศวกรรมระบบสายสัญญาณเครือข่ายคอมพิวเตอร์ตามมาตรฐานสากล',
         imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
+      }
+    ];
+
+    const defaultActivities = [
+      {
+        id: 'act-1',
+        title: 'กิจกรรมพัฒนาเว็บไซต์ AI-CS Department Platform',
+        role: 'LEAD DEV',
+        location: 'Maejo University • 2026',
+        icon: 'fa-users-gear',
+        description: 'มีส่วนร่วมในการออกแบบและพัฒนาระบบหน้าบ้าน (Frontend) ของแพลตฟอร์มภาควิชา AI-CS มหาวิทยาลัยแม่โจ้ โดยใช้ Next.js, React และ Tailwind CSS รองรับการแสดงผลทุกอุปกรณ์',
+        tags: ['Team Collaboration', 'Web UI/UX', 'GitHub Branching'],
+        images: ['https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg']
+      },
+      {
+        id: 'act-2',
+        title: 'การแข่งขันประกวดสร้างบอทเทรด Quantitative Trading',
+        role: 'COMPETITION',
+        location: 'Midterm Competition • 2026',
+        icon: 'fa-chart-pie',
+        description: 'เข้าร่วมการแข่งขันพัฒนาโมเดลวิเคราะห์ทิศทางราคาทองคำ H4 Backtest ด้วยอัลกอริทึม MQL5 ประเมินความเสี่ยง Drawdown และสร้างบอทส่งคำสั่งอัตโนมัติ',
+        tags: ['Quant Strategy', 'MQL5 Bot', 'Backtesting'],
+        images: ['https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg']
       }
     ];
 
     let projects = [];
     let certificates = [];
+    let activities = [];
 
     // Background Canvas
     (function initHudCanvas() {
@@ -711,17 +773,13 @@
     async function loadAllData() {
       await loadProjects();
       await loadCertificates();
+      await loadActivities();
     }
 
+    // Projects
     async function loadProjects() {
       try {
         let stored = await localforage.getItem('cosmic_projects_store');
-        if (!stored || !Array.isArray(stored) || stored.length === 0) {
-          const legacy = localStorage.getItem('cosmic_projects_store');
-          if (legacy) {
-            try { stored = JSON.parse(legacy); } catch(e) {}
-          }
-        }
         projects = Array.isArray(stored) && stored.length > 0 ? stored : [...defaultProjects];
         await localforage.setItem('cosmic_projects_store', projects);
       } catch (e) {
@@ -748,8 +806,8 @@
       if (!Array.isArray(projects)) projects = [];
       document.getElementById('statTotal').textContent = projects.length;
       document.getElementById('statAI').textContent = projects.filter(p => p.category === 'AI & Vision').length;
-      document.getElementById('statWeb').textContent = projects.filter(p => p.category === 'Web Platform').length;
       document.getElementById('statCerts').textContent = certificates.length;
+      document.getElementById('statActivities').textContent = activities.length;
     }
 
     function filterByStatCategory(cat) {
@@ -781,7 +839,6 @@
       filtered.forEach(p => {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-white/[0.02] transition';
-        
         const thumbHtml = p.imageUrl 
           ? `<img src="${p.imageUrl}" class="w-10 h-10 rounded-lg object-cover border border-pink-500/40">`
           : `<div class="w-10 h-10 rounded-lg bg-black border border-pink-500/20 text-pink-400 flex items-center justify-center text-xs"><i class="fa-solid fa-cube"></i></div>`;
@@ -825,7 +882,6 @@
     function handleImageFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(evt) {
         setImagePreview(evt.target.result);
@@ -864,7 +920,6 @@
     function openEditProjectModal(id) {
       const p = projects.find(item => String(item.id) === String(id));
       if (!p) return;
-
       document.getElementById('editProjectId').value = p.id;
       document.getElementById('projTitle').value = p.title || '';
       document.getElementById('projCategory').value = p.category || 'AI & Vision';
@@ -872,13 +927,8 @@
       document.getElementById('projTags').value = (p.tags || []).join(', ');
       document.getElementById('projDemoUrl').value = (p.demoUrl && p.demoUrl !== '#') ? p.demoUrl : '';
       document.getElementById('projGithubUrl').value = (p.githubUrl && p.githubUrl !== '#') ? p.githubUrl : '';
-
-      if (p.imageUrl) {
-        setImagePreview(p.imageUrl);
-      } else {
-        removeSelectedImage();
-      }
-
+      if (p.imageUrl) setImagePreview(p.imageUrl);
+      else removeSelectedImage();
       document.getElementById('modalHeaderTitle').textContent = `MISSION CONFIGURATION // EDIT: ${p.title}`;
       document.getElementById('projectModal').classList.remove('hidden');
       document.getElementById('projectModal').classList.add('flex');
@@ -935,7 +985,200 @@
     }
 
     // ==========================================
-    // CERTIFICATES SYSTEM (ระบบจัดการเกียรติบัตร)
+    // ACTIVITIES SYSTEM (จัดการ เพิ่ม/ลบ/แก้ไข กิจกรรม)
+    // ==========================================
+    let currentActImages = [];
+
+    async function loadActivities() {
+      try {
+        let stored = await localforage.getItem('cosmic_activities_store');
+        activities = Array.isArray(stored) && stored.length > 0 ? stored : [...defaultActivities];
+        await localforage.setItem('cosmic_activities_store', activities);
+      } catch(e) {
+        activities = [...defaultActivities];
+      }
+      renderActivityTable();
+      updateDashboardStats();
+    }
+
+    async function saveActivities() {
+      try {
+        await localforage.setItem('cosmic_activities_store', activities);
+        syncChannel.postMessage({ type: 'ACTIVITIES_UPDATED' });
+        renderActivityTable();
+        updateDashboardStats();
+        return true;
+      } catch(err) {
+        showToast('❌ บันทึกกิจกรรมไม่สำเร็จ');
+        return false;
+      }
+    }
+
+    function openActivityListModal() {
+      renderActivityTable();
+      document.getElementById('activityListModal').classList.remove('hidden');
+      document.getElementById('activityListModal').classList.add('flex');
+    }
+
+    function closeActivityListModal() {
+      document.getElementById('activityListModal').classList.add('hidden');
+      document.getElementById('activityListModal').classList.remove('flex');
+    }
+
+    function renderActivityTable() {
+      const tbody = document.getElementById('activityTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (activities.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-zinc-500 font-mono">ยังไม่มีข้อมูลกิจกรรมในระบบ</td></tr>`;
+        return;
+      }
+
+      activities.forEach(act => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-white/[0.02] transition';
+        const thumb = (act.images && act.images.length > 0) 
+          ? `<img src="${act.images[0]}" class="w-10 h-10 rounded-lg object-cover border border-purple-500/40">` 
+          : `<div class="w-10 h-10 rounded-lg bg-black border border-purple-500/20 text-purple-400 flex items-center justify-center text-xs"><i class="fa-solid fa-compass"></i></div>`;
+        
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center">${thumb}</td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-white text-xs">${act.title}</div>
+            <div class="text-[11px] text-zinc-400 line-clamp-1">${act.description || ''}</div>
+            <div class="text-[10px] text-purple-400/80 mt-0.5">มีรูปภาพทั้งหมด ${(act.images || []).length} รูป</div>
+          </td>
+          <td class="py-3 px-4 text-purple-300 font-mono text-xs">${act.role || '-'}</td>
+          <td class="py-3 px-4 font-mono text-zinc-400 text-xs">${act.location || '-'}</td>
+          <td class="py-3 px-4 text-right whitespace-nowrap">
+            <button onclick="editActivity('${act.id}')" class="px-2.5 py-1 rounded-lg bg-pink-500/10 border border-pink-500/30 text-pink-300 hover:bg-pink-500 hover:text-black transition text-xs mr-1" title="แก้ไข">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="deleteActivity('${act.id}')" class="px-2.5 py-1 rounded-lg bg-rose-950/40 border border-rose-500/40 text-rose-400 hover:bg-rose-600 hover:text-white transition text-xs" title="ลบ">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openActivityModal() {
+      document.getElementById('activityForm').reset();
+      document.getElementById('editActId').value = '';
+      currentActImages = [];
+      renderActImagePreviews();
+      document.getElementById('actModalHeaderTitle').innerHTML = '<i class="fa-solid fa-compass text-pink-400 mr-2"></i> เพิ่มกิจกรรมใหม่ & รูปภาพ';
+      document.getElementById('activityModal').classList.remove('hidden');
+      document.getElementById('activityModal').classList.add('flex');
+    }
+
+    function closeActivityModal() {
+      document.getElementById('activityModal').classList.add('hidden');
+      document.getElementById('activityModal').classList.remove('flex');
+    }
+
+    function editActivity(id) {
+      const act = activities.find(item => String(item.id) === String(id));
+      if (!act) return;
+
+      document.getElementById('editActId').value = act.id;
+      document.getElementById('actTitle').value = act.title || '';
+      document.getElementById('actRole').value = act.role || '';
+      document.getElementById('actLocation').value = act.location || '';
+      document.getElementById('actDesc').value = act.description || '';
+      document.getElementById('actTags').value = (act.tags || []).join(', ');
+
+      currentActImages = Array.isArray(act.images) ? [...act.images] : [];
+      renderActImagePreviews();
+
+      document.getElementById('actModalHeaderTitle').innerHTML = `<i class="fa-solid fa-compass text-pink-400 mr-2"></i> แก้ไข: ${act.title}`;
+      document.getElementById('activityModal').classList.remove('hidden');
+      document.getElementById('activityModal').classList.add('flex');
+    }
+
+    async function deleteActivity(id) {
+      if (confirm('ต้องการลบกิจกรรมนี้ออกจากระบบหรือไม่?')) {
+        activities = activities.filter(a => String(a.id) !== String(id));
+        await saveActivities();
+        showToast('🗑 ลบกิจกรรมเรียบร้อย');
+      }
+    }
+
+    function handleActMultipleImages(e) {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
+
+      showToast(`🔄 กำลังโหลดรูปภาพ ${files.length} รูป...`);
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          currentActImages.push(evt.target.result);
+          renderActImagePreviews();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderActImagePreviews() {
+      const container = document.getElementById('actImagePreviewGrid');
+      container.innerHTML = '';
+      currentActImages.forEach((imgSrc, idx) => {
+        const item = document.createElement('div');
+        item.className = 'relative w-20 h-20 rounded-xl overflow-hidden border border-pink-500/40 bg-black';
+        item.innerHTML = `
+          <img src="${imgSrc}" class="w-full h-full object-cover">
+          <button type="button" onclick="removeActImage(${idx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] hover:bg-rose-700">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function removeActImage(index) {
+      currentActImages.splice(index, 1);
+      renderActImagePreviews();
+    }
+
+    async function handleSaveActivity(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editActId').value;
+      const title = document.getElementById('actTitle').value.trim();
+      const role = document.getElementById('actRole').value.trim() || 'MEMBER';
+      const location = document.getElementById('actLocation').value.trim() || 'Maejo University';
+      const description = document.getElementById('actDesc').value.trim();
+      const tags = document.getElementById('actTags').value.split(',').map(s => s.trim()).filter(Boolean);
+
+      if (editId) {
+        const index = activities.findIndex(a => String(a.id) === String(editId));
+        if (index !== -1) {
+          activities[index] = {
+            ...activities[index],
+            title, role, location, description, tags,
+            images: currentActImages
+          };
+          await saveActivities();
+          showToast('💾 อัปเดตข้อมูลกิจกรรมเรียบร้อย!');
+          closeActivityModal();
+        }
+      } else {
+        const newAct = {
+          id: 'act-' + Date.now(),
+          title, role, location, description, tags,
+          images: currentActImages,
+          icon: 'fa-users-gear'
+        };
+        activities.unshift(newAct);
+        await saveActivities();
+        showToast('🚀 บันทึกกิจกรรมพร้อมรูปภาพเรียบร้อย!');
+        closeActivityModal();
+      }
+    }
+
+    // ==========================================
+    // CERTIFICATES SYSTEM
     // ==========================================
     async function loadCertificates() {
       try {
@@ -1033,11 +1276,8 @@
       document.getElementById('certYear').value = c.year || '';
       document.getElementById('certDesc').value = c.description || '';
 
-      if (c.imageUrl) {
-        setCertImagePreview(c.imageUrl);
-      } else {
-        removeCertImage();
-      }
+      if (c.imageUrl) setCertImagePreview(c.imageUrl);
+      else removeCertImage();
 
       document.getElementById('certFormTitle').innerHTML = `<i class="fa-solid fa-award text-rose-400 mr-2"></i> แก้ไข: ${c.title}`;
       document.getElementById('certFormModal').classList.remove('hidden');
@@ -1112,88 +1352,9 @@
       }
     }
 
-    // ==========================================
-    // ACTIVITIES SYSTEM
-    // ==========================================
-    let currentActImages = [];
-
-    function openActivityModal() {
-      document.getElementById('activityForm').reset();
-      document.getElementById('editActId').value = '';
-      currentActImages = [];
-      renderActImagePreviews();
-      document.getElementById('activityModal').classList.remove('hidden');
-      document.getElementById('activityModal').classList.add('flex');
-    }
-
-    function closeActivityModal() {
-      document.getElementById('activityModal').classList.add('hidden');
-      document.getElementById('activityModal').classList.remove('flex');
-    }
-
-    function handleActMultipleImages(e) {
-      const files = Array.from(e.target.files);
-      if (!files.length) return;
-
-      showToast(`🔄 กำลังโหลดรูปภาพ ${files.length} รูป...`);
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          currentActImages.push(evt.target.result);
-          renderActImagePreviews();
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function renderActImagePreviews() {
-      const container = document.getElementById('actImagePreviewGrid');
-      container.innerHTML = '';
-      currentActImages.forEach((imgSrc, idx) => {
-        const item = document.createElement('div');
-        item.className = 'relative w-20 h-20 rounded-xl overflow-hidden border border-pink-500/40 bg-black';
-        item.innerHTML = `
-          <img src="${imgSrc}" class="w-full h-full object-cover">
-          <button type="button" onclick="removeActImage(${idx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] hover:bg-rose-700">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function removeActImage(index) {
-      currentActImages.splice(index, 1);
-      renderActImagePreviews();
-    }
-
-    async function handleSaveActivity(e) {
-      e.preventDefault();
-      const title = document.getElementById('actTitle').value.trim();
-      const role = document.getElementById('actRole').value.trim() || 'MEMBER';
-      const location = document.getElementById('actLocation').value.trim() || 'Maejo University';
-      const description = document.getElementById('actDesc').value.trim();
-      const tags = document.getElementById('actTags').value.split(',').map(s => s.trim()).filter(Boolean);
-
-      let activities = (await localforage.getItem('cosmic_activities_store')) || [];
-
-      const newAct = {
-        id: 'act-' + Date.now(),
-        title, role, location, description, tags,
-        images: currentActImages,
-        icon: 'fa-users-gear'
-      };
-
-      activities.unshift(newAct);
-      await localforage.setItem('cosmic_activities_store', activities);
-      syncChannel.postMessage({ type: 'ACTIVITIES_UPDATED' });
-      showToast('🚀 บันทึกกิจกรรมพร้อมรูปภาพเรียบร้อย!');
-      closeActivityModal();
-    }
-
     // Backup & Restore
     function exportDataJSON() {
-      const fullBackup = { projects, certificates };
+      const fullBackup = { projects, certificates, activities };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup, null, 2));
       const a = document.createElement('a');
       a.href = dataStr;
@@ -1212,11 +1373,10 @@
           if (Array.isArray(parsed)) {
             projects = parsed;
             await saveProjects();
-          } else if (parsed && parsed.projects) {
-            projects = parsed.projects || [];
-            certificates = parsed.certificates || [];
-            await saveProjects();
-            await saveCertificates();
+          } else if (parsed && typeof parsed === 'object') {
+            if (parsed.projects) { projects = parsed.projects; await saveProjects(); }
+            if (parsed.certificates) { certificates = parsed.certificates; await saveCertificates(); }
+            if (parsed.activities) { activities = parsed.activities; await saveActivities(); }
           }
           showToast('✅ กู้คืนข้อมูลเข้าระบบเรียบร้อยแล้ว!');
         } catch(err) {
@@ -1227,11 +1387,13 @@
     }
 
     async function resetFactoryData() {
-      if (confirm('ต้องการรีเซ็ตข้อมูลผลงานกลับเป็นค่าเริ่มต้นหรือไม่?')) {
+      if (confirm('ต้องการรีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นหรือไม่?')) {
         projects = [...defaultProjects];
         certificates = [...defaultCertificates];
+        activities = [...defaultActivities];
         await saveProjects();
         await saveCertificates();
+        await saveActivities();
         showToast('🔄 รีเซ็ตข้อมูลกลับสู่ค่าเริ่มต้นเรียบร้อย');
       }
     }
