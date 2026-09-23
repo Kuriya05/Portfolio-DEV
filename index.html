@@ -138,10 +138,6 @@
           </span>
           <span class="tracking-wider">SYS.ONLINE</span>
         </div>
-        <a href="admin.html" target="_blank" class="px-3 py-1.5 rounded-xl bg-black/80 border border-pink-500/30 text-xs text-zinc-300 hover:text-white hover:border-pink-400 transition flex items-center gap-1.5">
-          <i class="fa-solid fa-lock text-[11px] text-pink-400"></i>
-          <span>ADMIN</span>
-        </a>
       </div>
 
       <!-- Mobile Button -->
@@ -264,8 +260,8 @@
 
   <!-- PROJECT NEBULA -->
   <section id="projects" class="py-24 border-y border-pink-500/20 bg-black/40 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div class="flex items-center gap-2 text-xs font-mono text-pink-400 uppercase tracking-widest mb-1.5">
             <i class="fa-solid fa-atom"></i>
@@ -280,25 +276,24 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2.5 overflow-x-auto pb-4 mb-10 no-scrollbar" id="categoryFilters">
-        <button onclick="filterProjects('all')" class="filter-btn active px-5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap bg-pink-500 text-black shadow-[0_0_15px_rgba(255,42,133,0.5)] transition-all">
-          ทั้งหมด (ALL SYSTEMS)
-        </button>
-        <button onclick="filterProjects('AI & Vision')" class="filter-btn px-5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap bg-black/70 text-zinc-300 border border-pink-500/20 hover:border-pink-500/50 transition-all">
-          AI & VISION
-        </button>
-        <button onclick="filterProjects('Web Platform')" class="filter-btn px-5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap bg-black/70 text-zinc-300 border border-pink-500/20 hover:border-pink-500/50 transition-all">
-          WEB PLATFORMS
-        </button>
-        <button onclick="filterProjects('Algo & Trading')" class="filter-btn px-5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap bg-black/70 text-zinc-300 border border-pink-500/20 hover:border-pink-500/50 transition-all">
-          ALGO & TRADING
-        </button>
-        <button onclick="filterProjects('Tools & Cloud')" class="filter-btn px-5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap bg-black/70 text-zinc-300 border border-pink-500/20 hover:border-pink-500/50 transition-all">
-          TOOLS & DESKTOP
-        </button>
+      <!-- Category filters -->
+      <div class="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar" id="categoryFilters"></div>
+
+      <div class="flex items-center justify-between gap-3 font-mono">
+        <div class="text-[11px] text-zinc-500">
+          <i class="fa-solid fa-satellite-dish text-pink-400 mr-1"></i>
+          <span id="projectResultCount"></span>
+        </div>
+        <select id="projectSortSelect" onchange="setProjectSort(this.value)" class="px-3 py-2 rounded-xl bg-[#0d0b17] border border-pink-500/30 text-zinc-300 text-xs focus:outline-none focus:border-pink-400">
+          <option value="newest">ล่าสุดก่อน (NEWEST)</option>
+          <option value="oldest">เก่าสุดก่อน (OLDEST)</option>
+          <option value="az">ชื่อ A → Z</option>
+          <option value="za">ชื่อ Z → A</option>
+        </select>
       </div>
 
-      <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <!-- 3-Column Social Feed Grid แถวละ 3 โพสต์ -->
+      <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
 
       <div id="noProjectsMessage" class="hidden text-center py-20">
         <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-black/80 border border-pink-500/40 flex items-center justify-center text-pink-400 text-2xl shadow-[0_0_20px_rgba(255,42,133,0.3)]">
@@ -514,7 +509,7 @@
     </div>
   </section>
 
-  <!-- ACTIVITIES SECTION (พร้อมแถบเลื่อนดูหลายภาพ) -->
+  <!-- ACTIVITIES SECTION -->
   <section id="activities" class="py-24 border-t border-pink-500/20 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-2xl mx-auto mb-14">
@@ -530,7 +525,6 @@
         </p>
       </div>
 
-      <!-- Dynamic Grid แสดงกิจกรรมที่เลื่อนดูรูปได้ -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="activitiesGrid"></div>
     </div>
   </section>
@@ -673,7 +667,7 @@
     </div>
   </div>
 
-  <!-- MODAL MEDIA PREVIEW (สำหรับดูรูปภาพเกียรติบัตรและกิจกรรม) -->
+  <!-- MODAL MEDIA PREVIEW -->
   <div id="mediaModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
     <div class="cosmic-glass border border-pink-500/50 w-full max-w-3xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(255,42,133,0.35)] relative flex flex-col">
       <div class="px-6 py-4 border-b border-pink-500/20 flex items-center justify-between bg-black/60 font-mono">
@@ -688,7 +682,7 @@
     </div>
   </div>
 
-  <!-- MODAL DETAIL MISSION (เดิม) -->
+  <!-- MODAL DETAIL MISSION -->
   <div id="projectDetailModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
     <div class="cosmic-glass border border-pink-500/50 w-full max-w-2xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(255,42,133,0.3)] relative max-h-[90vh] flex flex-col">
       <div class="px-6 py-4 border-b border-pink-500/20 flex items-center justify-between bg-black/60">
@@ -757,12 +751,146 @@
     // 1. Starfield & Meteor Canvas
     const canvas = document.getElementById('space-canvas');
     const ctx = canvas.getContext('2d');
-    let stars = [], meteors = [], width = 0, height = 0;
+    let stars = [], meteors = [], satellites = [], signals = [], glyphs = [], width = 0, height = 0;
 
     function resizeCanvas() {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
       initStars();
+      initSatellites();
+      initGlyphs();
+    }
+
+    function createSatellite(fromEdge) {
+      const dir = Math.random() > 0.5 ? 1 : -1;
+      const speed = Math.random() * 0.25 + 0.15;
+      const drift = (Math.random() - 0.5) * 0.12;
+      return {
+        x: fromEdge ? (dir > 0 ? -40 : width + 40) : Math.random() * width,
+        y: Math.random() * height * 0.85 + height * 0.05,
+        vx: speed * dir,
+        vy: drift,
+        angle: Math.random() * Math.PI * 2,
+        spin: (Math.random() - 0.5) * 0.004,
+        scale: Math.random() * 0.5 + 0.8,
+        blink: Math.random() * 100,
+        nextSignal: Math.random() * 400 + 200
+      };
+    }
+
+    function initSatellites() {
+      const count = width < 640 ? 2 : 4;
+      satellites = [];
+      signals = [];
+      for (let i = 0; i < count; i++) satellites.push(createSatellite(false));
+    }
+
+    function drawSatellite(s) {
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.angle);
+      ctx.scale(s.scale, s.scale);
+      ctx.globalAlpha = 0.85;
+      ctx.lineWidth = 1;
+
+      ctx.strokeStyle = 'rgba(255, 42, 133, 0.9)';
+      ctx.fillStyle = 'rgba(255, 42, 133, 0.18)';
+      [-1, 1].forEach(side => {
+        const px = side < 0 ? -26 : 8;
+        ctx.fillRect(px, -5, 18, 10);
+        ctx.strokeRect(px, -5, 18, 10);
+        ctx.beginPath();
+        for (let gx = 6; gx < 18; gx += 6) { ctx.moveTo(px + gx, -5); ctx.lineTo(px + gx, 5); }
+        ctx.moveTo(px, 0); ctx.lineTo(px + 18, 0);
+        ctx.stroke();
+      });
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.beginPath();
+      ctx.moveTo(-8, 0); ctx.lineTo(-5, 0);
+      ctx.moveTo(5, 0); ctx.lineTo(8, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#1a1328';
+      ctx.fillRect(-5, -6, 10, 12);
+      ctx.strokeRect(-5, -6, 10, 12);
+
+      ctx.beginPath();
+      ctx.moveTo(0, -6); ctx.lineTo(0, -11);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, -12, 3.5, Math.PI, Math.PI * 2);
+      ctx.stroke();
+
+      const on = Math.floor(s.blink / 30) % 2 === 0;
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = on ? '#ff2a85' : 'rgba(255, 42, 133, 0.25)';
+      if (on) { ctx.shadowColor = '#ff2a85'; ctx.shadowBlur = 8; }
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function updateSatellites() {
+      for (let i = 0; i < satellites.length; i++) {
+        const s = satellites[i];
+        s.x += s.vx; s.y += s.vy;
+        s.angle += s.spin;
+        s.blink++;
+        if (--s.nextSignal <= 0) {
+          signals.push({ x: s.x, y: s.y, r: 4, life: 1 });
+          s.nextSignal = Math.random() * 500 + 300;
+        }
+        if (s.x < -60 || s.x > width + 60 || s.y < -60 || s.y > height + 60) {
+          satellites[i] = createSatellite(true);
+          continue;
+        }
+        drawSatellite(s);
+      }
+
+      for (let i = signals.length - 1; i >= 0; i--) {
+        const g = signals[i];
+        ctx.beginPath();
+        ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 42, 133, ${g.life * 0.5})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        g.r += 0.8;
+        g.life -= 0.012;
+        if (g.life <= 0) signals.splice(i, 1);
+      }
+    }
+
+    const GLYPH_SET = ['</>', '{ }', '0101', '1010', '01', '10', '[ ]', '=>', '&&', '0x1F', '$_', '#!', 'λ', '::', '()'];
+
+    function createGlyph(fromBottom) {
+      return {
+        x: Math.random() * width,
+        y: fromBottom ? height + 20 : Math.random() * height,
+        vy: -(Math.random() * 0.25 + 0.08),
+        text: GLYPH_SET[Math.floor(Math.random() * GLYPH_SET.length)],
+        size: Math.floor(Math.random() * 6) + 10,
+        alpha: Math.random() * 0.12 + 0.05,
+        pink: Math.random() > 0.5
+      };
+    }
+
+    function initGlyphs() {
+      glyphs = [];
+      const count = Math.min(40, Math.floor((width * height) / 45000));
+      for (let i = 0; i < count; i++) glyphs.push(createGlyph(false));
+    }
+
+    function updateGlyphs() {
+      ctx.textAlign = 'center';
+      for (let i = 0; i < glyphs.length; i++) {
+        const g = glyphs[i];
+        g.y += g.vy;
+        if (g.y < -20) { glyphs[i] = createGlyph(true); continue; }
+        ctx.font = `${g.size}px "JetBrains Mono", ui-monospace, Consolas, monospace`;
+        ctx.fillStyle = g.pink ? `rgba(255, 42, 133, ${g.alpha})` : `rgba(255, 255, 255, ${g.alpha})`;
+        ctx.fillText(g.text, g.x, g.y);
+      }
     }
 
     function initStars() {
@@ -805,6 +933,9 @@
         ctx.fill();
       });
 
+      ctx.globalAlpha = 1;
+      updateGlyphs();
+      updateSatellites();
       ctx.globalAlpha = 1;
       for (let i = meteors.length - 1; i >= 0; i--) {
         const m = meteors[i];
@@ -906,7 +1037,7 @@
         title: 'ระบบตรวจจับโรคข้าวโพดด้วย AI Vision (Corn Pest Eye)',
         category: 'AI & Vision',
         summary: 'ตรวจจับและวิเคราะห์โรคใบไหม้ หนอนเจาะลำต้น และอาการขาดธาตุอาหารของข้าวโพดแบบ Real-time ด้วยโมเดล YOLOv8 ความแม่นยำสูง',
-        tags: ['YOLOv8', 'Python', 'FastAPI', 'OpenCV', 'PyTorch'],
+        tags: ['YOLOv8', 'Python', 'FastAPI', 'OpenCV'],
         demoUrl: '#',
         githubUrl: 'https://github.com/Kuriya05',
         imageUrl: '',
@@ -917,7 +1048,7 @@
         title: 'Cosmic Gold & Forex Algorithmic Bot',
         category: 'Algo & Trading',
         summary: 'บอทวิเคราะห์แนวรับ-แนวต้านอัตโนมัติบน XAUUSD พร้อมเชื่อมต่อ MetaTrader 5 ส่งแจ้งเตือน Real-time สู่ Line Notify & Telegram',
-        tags: ['Python', 'MetaTrader 5', 'Pandas', 'Algo Engine'],
+        tags: ['Python', 'MetaTrader 5', 'Algo Engine'],
         demoUrl: '#',
         githubUrl: 'https://github.com/Kuriya05',
         imageUrl: '',
@@ -937,7 +1068,76 @@
     ];
 
     let currentFilter = 'all';
+    let currentSort = 'newest';
     let projects = [];
+
+    const FILTER_BTN_BASE = 'filter-btn px-5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap transition-all flex items-center gap-2';
+    const FILTER_BTN_ACTIVE = 'bg-pink-500 text-black shadow-[0_0_15px_rgba(255,42,133,0.5)]';
+    const FILTER_BTN_IDLE = 'bg-black/70 text-zinc-300 border border-pink-500/20 hover:border-pink-500/50';
+
+    const PROFILE_AVATAR = 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg';
+
+    function formatPostDate(id) {
+      const ts = Number(String(id || '').replace(/^p-/, ''));
+      if (!ts || ts < 1e12) return 'ผลงานเด่น';
+      const diff = Date.now() - ts;
+      const min = Math.floor(diff / 60000);
+      if (min < 1) return 'เมื่อสักครู่';
+      if (min < 60) return `${min} นาทีที่แล้ว`;
+      const hr = Math.floor(min / 60);
+      if (hr < 24) return `${hr} ชั่วโมงที่แล้ว`;
+      const day = Math.floor(hr / 24);
+      if (day < 7) return `${day} วันที่แล้ว`;
+      return new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function renderCategoryFilters() {
+      const container = document.getElementById('categoryFilters');
+      if (!container) return;
+
+      const counts = {};
+      projects.forEach(p => {
+        const cat = p.category || 'General';
+        counts[cat] = (counts[cat] || 0) + 1;
+      });
+      const categories = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+      if (currentFilter !== 'all' && !counts[currentFilter]) currentFilter = 'all';
+
+      const makeBtn = (value, label, count) => {
+        const active = currentFilter === value;
+        return `<button data-category="${escapeHtml(value)}" class="${FILTER_BTN_BASE} ${active ? FILTER_BTN_ACTIVE : FILTER_BTN_IDLE}">
+          <span>${escapeHtml(label)}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-md ${active ? 'bg-black/20' : 'bg-pink-500/15 text-pink-300'}">${count}</span>
+        </button>`;
+      };
+
+      container.innerHTML = makeBtn('all', 'ทั้งหมด (ALL SYSTEMS)', projects.length) +
+        categories.map(cat => makeBtn(cat, cat.toUpperCase(), counts[cat])).join('');
+
+      container.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => filterProjects(btn.dataset.category));
+      });
+    }
+
+    function getFilteredProjects() {
+      let list = currentFilter === 'all'
+        ? projects
+        : projects.filter(p => (p.category || 'General') === currentFilter);
+
+      if (currentSort === 'oldest') list = list.slice().reverse();
+      else if (currentSort === 'az') list = list.slice().sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      else if (currentSort === 'za') list = list.slice().sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+      return list;
+    }
+
+    function setProjectSort(value) {
+      currentSort = value || 'newest';
+      renderProjects();
+    }
 
     async function initPortfolio() {
       try {
@@ -951,6 +1151,7 @@
       } catch (e) {
         projects = defaultProjects;
       }
+      renderCategoryFilters();
       renderProjects();
       updateStats();
     }
@@ -960,15 +1161,17 @@
       if (countEl) countEl.textContent = `${projects.length}+`;
     }
 
+    // ฟังก์ชันสร้าง Social Media Post Card แบบแถวละ 3 การ์ด พอดีตา
     function renderProjects() {
       const grid = document.getElementById('projectsGrid');
       const emptyState = document.getElementById('noProjectsMessage');
       if (!grid) return;
       grid.innerHTML = '';
 
-      const filtered = currentFilter === 'all'
-        ? projects
-        : projects.filter(p => p.category === currentFilter);
+      const filtered = getFilteredProjects();
+
+      const countEl = document.getElementById('projectResultCount');
+      if (countEl) countEl.textContent = `แสดง ${filtered.length} จาก ${projects.length} ผลงาน`;
 
       if (filtered.length === 0) {
         if (emptyState) emptyState.classList.remove('hidden');
@@ -978,94 +1181,118 @@
       }
 
       filtered.forEach(project => {
-        const card = document.createElement('div');
-        card.className = 'cosmic-glass rounded-3xl overflow-hidden flex flex-col justify-between transition-all duration-300 group hover:border-pink-500/50 hover:shadow-[0_0_30px_rgba(255,42,133,0.25)]';
+        const post = document.createElement('article');
+        post.className = 'cosmic-glass rounded-3xl overflow-hidden transition-all duration-300 hover:border-pink-500/50 hover:shadow-[0_0_30px_rgba(255,42,133,0.25)] flex flex-col justify-between';
 
-        const tagsHtml = (project.tags || []).map(t => 
-          `<span class="text-[11px] font-mono px-2.5 py-1 rounded-md bg-black/80 text-zinc-300 border border-pink-500/30">${t}</span>`
-        ).join('');
+        const title = escapeHtml(project.title);
+        const summary = escapeHtml(project.summary);
+        const category = escapeHtml(project.category || 'General');
+        const postedAt = formatPostDate(project.id);
+        const isLong = (project.summary || '').length > 95;
 
-        const imageHeader = project.imageUrl ? `
-          <div class="relative w-full h-48 overflow-hidden bg-black/80 border-b border-pink-500/20">
-            <img src="${project.imageUrl}" alt="${project.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
-            <div class="absolute inset-0 bg-gradient-to-t from-[#0d0b17] via-transparent to-transparent"></div>
-            <span class="absolute bottom-3 left-4 text-xs font-mono font-bold px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-pink-400 border border-pink-500/40">
-              ${project.category}
-            </span>
-          </div>
+        const hashtags = (project.tags || []).slice(0, 3).map(t =>
+          `<span class="text-[11px] font-mono text-pink-400 hover:text-pink-300 transition">#${escapeHtml(String(t).replace(/\s+/g, ''))}</span>`
+        ).join(' ');
+
+        const media = project.imageUrl ? `
+          <button type="button" data-action="preview" class="block w-full h-44 bg-black/80 border-y border-pink-500/20 overflow-hidden group/img relative">
+            <img src="${escapeHtml(project.imageUrl)}" alt="${title}" loading="lazy" class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500 ease-out">
+            <div class="absolute inset-0 bg-black/20 group-hover/img:bg-transparent transition flex items-center justify-center">
+              <span class="opacity-0 group-hover/img:opacity-100 transition px-2 py-1 rounded-lg bg-black/80 border border-pink-500/40 text-[10px] font-mono text-pink-300">
+                <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> ดูรูปขยาย
+              </span>
+            </div>
+          </button>
         ` : `
-          <div class="px-6 pt-6 flex items-center justify-between">
-            <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/30">${project.category}</span>
-            <div class="w-9 h-9 rounded-xl bg-black border border-pink-500/30 text-pink-400 flex items-center justify-center group-hover:scale-110 group-hover:border-pink-400 transition-all shadow-[0_0_10px_rgba(255,42,133,0.2)]">
-              <i class="fa-solid ${project.icon || 'fa-code'}"></i>
+          <div class="h-32 mx-4 my-2 rounded-2xl border border-pink-500/20 bg-gradient-to-br from-pink-500/10 via-black/60 to-black/80 p-3.5 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-sm shrink-0 shadow-[0_0_12px_rgba(255,42,133,0.3)]">
+              <i class="fa-solid ${escapeHtml(project.icon || 'fa-code')}"></i>
+            </div>
+            <div class="font-mono text-[10px] text-zinc-500 leading-tight min-w-0">
+              <div class="text-pink-400">$ deploy --launch</div>
+              <div class="text-zinc-300 truncate">${title}</div>
+              <div>status: <span class="text-emerald-400">deployed ✓</span></div>
             </div>
           </div>
         `;
 
-        card.innerHTML = `
+        const hasGithub = project.githubUrl && project.githubUrl !== '#';
+        const hasDemo = project.demoUrl && project.demoUrl !== '#';
+        const actionBtn = 'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-mono text-zinc-300 hover:bg-pink-500/15 hover:text-pink-300 transition';
+
+        post.innerHTML = `
           <div>
-            ${imageHeader}
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="text-lg font-bold font-orbitron text-white group-hover:text-pink-300 transition-colors line-clamp-1">${project.title}</h3>
-                ${project.imageUrl ? `
-                  <div class="w-8 h-8 rounded-lg bg-black/60 border border-pink-500/30 text-pink-400 flex items-center justify-center text-xs ml-2 shrink-0">
-                    <i class="fa-solid fa-code"></i>
-                  </div>
-                ` : ''}
+            <!-- Post Header -->
+            <header class="flex items-center gap-2.5 px-4 pt-4 pb-2.5">
+              <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-pink-500/60 shadow-[0_0_8px_rgba(255,42,133,0.35)] shrink-0">
+                <img src="${PROFILE_AVATAR}" alt="Kuriya Thathe" class="w-full h-full object-cover">
               </div>
-              <p class="text-zinc-400 text-xs sm:text-sm line-clamp-3 mb-6 font-light leading-relaxed">${project.summary}</p>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1 text-xs font-bold text-white leading-tight">
+                  <span class="truncate">Kuriya Thathe</span>
+                  <i class="fa-solid fa-circle-check text-pink-400 text-[10px]" title="Verified"></i>
+                </div>
+                <div class="flex items-center gap-1 text-[10px] font-mono text-zinc-500 truncate mt-0.5">
+                  <span class="text-pink-400 font-semibold truncate max-w-[90px]">${category}</span>
+                  <span>·</span>
+                  <span>${postedAt}</span>
+                </div>
+              </div>
+              <div class="w-7 h-7 rounded-lg bg-black/70 border border-pink-500/30 text-pink-400 flex items-center justify-center text-xs shrink-0">
+                <i class="fa-solid ${escapeHtml(project.icon || 'fa-code')}"></i>
+              </div>
+            </header>
+
+            <!-- Post Content -->
+            <div class="px-4 pb-3">
+              <h3 class="text-sm font-bold font-orbitron text-white leading-snug mb-1 line-clamp-1">${title}</h3>
+              <p data-role="summary" class="text-zinc-300 text-xs font-light leading-relaxed whitespace-pre-line ${isLong ? 'line-clamp-2' : ''}">${summary}</p>
+              ${isLong ? `<button type="button" data-action="expand" class="mt-0.5 text-[10px] font-semibold text-pink-400 hover:text-pink-300 transition">ดูเพิ่มเติม...</button>` : ''}
+              ${hashtags ? `<div class="flex flex-wrap gap-x-1.5 gap-y-0.5 mt-2">${hashtags}</div>` : ''}
             </div>
+
+            <!-- Post Media (Image or Code Card) -->
+            ${media}
           </div>
 
-          <div class="px-6 pb-6">
-            <div class="flex flex-wrap gap-1.5 mb-6">
-              ${tagsHtml}
+          <!-- Post Footer / Actions -->
+          <div>
+            <div class="px-4 py-2 flex items-center justify-between text-[10px] font-mono text-zinc-500 border-t border-pink-500/10">
+              <span><i class="fa-solid fa-layer-group text-pink-400 mr-1"></i>${(project.tags || []).length} เทคโนโลยี</span>
+              <span>${hasGithub ? '<i class="fa-brands fa-github mr-1 text-pink-400"></i>Source' : ''}</span>
             </div>
 
-            <div class="pt-4 border-t border-pink-500/20 flex items-center justify-between font-mono">
-              <button onclick="openDetailModal('${project.id}')" class="text-xs font-bold text-pink-400 hover:text-white flex items-center gap-1.5 transition">
-                <span>INSPECT MISSION</span>
-                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            <footer class="mx-3 mb-3 pt-1 border-t border-pink-500/15 flex items-center gap-1">
+              <button type="button" data-action="detail" class="${actionBtn}">
+                <i class="fa-solid fa-magnifying-glass-plus text-xs"></i><span>ดูข้อมูล</span>
               </button>
-
-              <div class="flex items-center space-x-3 text-zinc-400 text-sm">
-                ${project.githubUrl && project.githubUrl !== '#' ? `
-                  <a href="${project.githubUrl}" target="_blank" class="hover:text-pink-400 transition" title="Source Repository">
-                    <i class="fa-brands fa-github"></i>
-                  </a>
-                ` : ''}
-                ${project.demoUrl && project.demoUrl !== '#' ? `
-                  <a href="${project.demoUrl}" target="_blank" class="hover:text-pink-400 transition" title="Launch Demo">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                  </a>
-                ` : ''}
-              </div>
-            </div>
+              ${hasGithub ? `<a href="${escapeHtml(project.githubUrl)}" target="_blank" rel="noopener" class="${actionBtn}"><i class="fa-brands fa-github text-xs"></i><span>Code</span></a>` : ''}
+              ${hasDemo ? `<a href="${escapeHtml(project.demoUrl)}" target="_blank" rel="noopener" class="${actionBtn}"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i><span>Demo</span></a>` : ''}
+            </footer>
           </div>
         `;
 
-        grid.appendChild(card);
+        post.querySelector('[data-action="detail"]').addEventListener('click', () => openDetailModal(project.id));
+        const previewBtn = post.querySelector('[data-action="preview"]');
+        if (previewBtn) previewBtn.addEventListener('click', () => openMediaPreview(project.imageUrl, project.title));
+        const expandBtn = post.querySelector('[data-action="expand"]');
+        if (expandBtn) expandBtn.addEventListener('click', () => {
+          const p = post.querySelector('[data-role="summary"]');
+          const collapsed = p.classList.toggle('line-clamp-2');
+          expandBtn.textContent = collapsed ? 'ดูเพิ่มเติม...' : 'ย่อลง';
+        });
+
+        grid.appendChild(post);
       });
     }
 
     function filterProjects(category) {
       currentFilter = category;
-      const buttons = document.querySelectorAll('.filter-btn');
-      buttons.forEach(btn => {
-        btn.classList.remove('bg-pink-500', 'text-black', 'shadow-[0_0_15px_rgba(255,42,133,0.5)]');
-        btn.classList.add('bg-black/70', 'text-zinc-300', 'border', 'border-pink-500/20');
-      });
-
-      if (event && event.currentTarget) {
-        event.currentTarget.classList.remove('bg-black/70', 'text-zinc-300', 'border', 'border-pink-500/20');
-        event.currentTarget.classList.add('bg-pink-500', 'text-black', 'shadow-[0_0_15px_rgba(255,42,133,0.5)]');
-      }
-
+      renderCategoryFilters();
       renderProjects();
     }
 
-    // 4. Activities Management (พร้อมแถบเลื่อนดูรูปภาพหลายรูป)
+    // 4. Activities Management
     const defaultActivities = [
       {
         id: 'act-1',
@@ -1123,7 +1350,6 @@
           `<span class="px-2.5 py-0.5 rounded bg-black border border-pink-500/20 text-zinc-300 font-mono text-[10px]">${t}</span>`
         ).join('');
 
-        // Slider แนวนอน
         let imagesSliderHtml = '';
         if (act.images && act.images.length > 0) {
           const sliderId = `slider-${act.id || actIdx}`;
