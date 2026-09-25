@@ -85,6 +85,15 @@
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* มุมมองกะทัดรัด: ซ่อนรูป แสดงได้มากขึ้นต่อแถว */
+    #projectsGrid.is-compact { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    @media (min-width: 640px)  { #projectsGrid.is-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1024px) { #projectsGrid.is-compact { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    #projectsGrid.is-compact .proj-media { display: none; }
+    #projectsGrid.is-compact article header { padding-top: 0.875rem; padding-bottom: 0.5rem; }
+
+    mark.hl { background: rgba(255, 42, 133, 0.28); color: #fff; border-radius: 3px; padding: 0 2px; }
   </style>
 </head>
 
@@ -281,20 +290,23 @@
         </div>
       </div>
 
-      <!-- Category filters -->
-      <div class="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar" id="categoryFilters"></div>
+      <div class="flex items-center justify-end gap-2.5 font-mono">
+        <button type="button" id="projectViewToggle" title="สลับมุมมองการ์ด / กะทัดรัด"
+                class="shrink-0 px-3 py-2 rounded-xl bg-[#0d0b17] border border-pink-500/30 text-zinc-300 hover:text-pink-300 hover:border-pink-400 text-xs transition flex items-center gap-1.5">
+          <i class="fa-solid fa-table-cells-large"></i><span id="projectViewLabel">การ์ด</span>
+        </button>
 
-      <div class="flex items-center justify-between gap-3 font-mono">
-        <div class="text-[11px] text-zinc-500">
-          <i class="fa-solid fa-satellite-dish text-pink-400 mr-1"></i>
-          <span id="projectResultCount"></span>
-        </div>
-        <select id="projectSortSelect" onchange="setProjectSort(this.value)" class="px-3 py-2 rounded-xl bg-[#0d0b17] border border-pink-500/30 text-zinc-300 text-xs focus:outline-none focus:border-pink-400">
+        <select id="projectSortSelect" onchange="setProjectSort(this.value)" class="shrink-0 px-3 py-2 rounded-xl bg-[#0d0b17] border border-pink-500/30 text-zinc-300 text-xs focus:outline-none focus:border-pink-400">
           <option value="newest">ล่าสุดก่อน (NEWEST)</option>
           <option value="oldest">เก่าสุดก่อน (OLDEST)</option>
           <option value="az">ชื่อ A → Z</option>
           <option value="za">ชื่อ Z → A</option>
         </select>
+      </div>
+
+      <div class="text-[11px] text-zinc-500 font-mono">
+        <i class="fa-solid fa-satellite-dish text-pink-400 mr-1"></i>
+        <span id="projectResultCount"></span>
       </div>
 
       <!-- 3-Column Social Feed Grid -->
@@ -305,7 +317,7 @@
           <i class="fa-solid fa-satellite"></i>
         </div>
         <h4 class="text-white font-orbitron text-lg font-bold">NO TRANSMISSION FOUND</h4>
-        <p class="text-zinc-500 text-xs font-mono mt-1">ยังไม่มีข้อมูลผลงานในหมวดหมู่นี้</p>
+        <p class="text-zinc-500 text-xs font-mono mt-1" id="noProjectsHint">ยังไม่มีข้อมูลผลงานในหมวดหมู่นี้</p>
       </div>
     </div>
   </section>
@@ -992,6 +1004,8 @@
 
     let currentFilter = 'all';
     let currentSort = 'newest';
+    let currentSearch = '';
+    let compactView = false;
 
     let projects = [];
 
@@ -1001,8 +1015,19 @@
 
     const PROFILE_AVATAR = 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg';
 
-    function formatPostDate(id) {
-      const ts = Number(String(id || '').replace(/^p-/, ''));
+    function formatPostDate(project) {
+      let ts = 0;
+
+      // 1) วันที่จริงจากฐานข้อมูล
+      if (project && project.created_at) {
+        const parsed = Date.parse(project.created_at);
+        if (!isNaN(parsed)) ts = parsed;
+      }
+      // 2) สำรอง: ดึงเวลาจาก id (รองรับทั้ง p-1700000000000 และ p-1700000000000-ab12c)
+      if (!ts) {
+        const m = /^[a-z]+-(\d{12,})/i.exec(String((project && project.id) || ''));
+        if (m) ts = Number(m[1]);
+      }
       if (!ts || ts < 1e12) return 'ผลงานเด่น';
       const diff = Date.now() - ts;
       const min = Math.floor(diff / 60000);
@@ -1023,8 +1048,9 @@
       const container = document.getElementById('categoryFilters');
       if (!container) return;
 
+      const matched = getSearchMatched();
       const counts = {};
-      projects.forEach(p => {
+      matched.forEach(p => {
         const cat = p.category || 'General';
         counts[cat] = (counts[cat] || 0) + 1;
       });
@@ -1039,7 +1065,7 @@
         </button>`;
       };
 
-      container.innerHTML = makeBtn('all', 'ทั้งหมด (ALL SYSTEMS)', projects.length) +
+      container.innerHTML = makeBtn('all', 'ทั้งหมด (ALL SYSTEMS)', matched.length) +
         categories.map(cat => makeBtn(cat, cat.toUpperCase(), counts[cat])).join('');
 
       container.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1047,10 +1073,23 @@
       });
     }
 
+    // ผลงานที่ตรงคำค้น (ยังไม่กรองหมวด) — ใช้ทั้งตัวนับหมวดหมู่และรายการผลงาน
+    function getSearchMatched() {
+      const q = currentSearch.trim().toLowerCase();
+      if (!q) return projects;
+      return projects.filter(p => [
+        p.title || '',
+        p.summary || '',
+        p.category || '',
+        (p.tags || []).join(' ')
+      ].join(' ').toLowerCase().includes(q));
+    }
+
     function getFilteredProjects() {
+      const matched = getSearchMatched();
       let list = currentFilter === 'all'
-        ? projects
-        : projects.filter(p => (p.category || 'General') === currentFilter);
+        ? matched
+        : matched.filter(p => (p.category || 'General') === currentFilter);
 
       if (currentSort === 'oldest') list = list.slice().reverse();
       else if (currentSort === 'az') list = list.slice().sort((a, b) => (a.title || '').localeCompare(b.title || ''));
@@ -1060,7 +1099,106 @@
 
     function setProjectSort(value) {
       currentSort = value || 'newest';
+      syncUrlState();
       renderProjects();
+    }
+
+    // ไฮไลต์คำค้นในข้อความ (รับ text ที่ escape แล้ว)
+    function highlight(escapedText) {
+      const q = currentSearch.trim();
+      if (!q) return escapedText;
+      const safe = escapeHtml(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      try {
+        return escapedText.replace(new RegExp('(' + safe + ')', 'gi'), '<mark class="hl">$1</mark>');
+      } catch (e) {
+        return escapedText;
+      }
+    }
+
+    function resetProjectFilters() {
+      currentFilter = 'all';
+      currentSearch = '';
+      currentSort = 'newest';
+      const input = document.getElementById('projectSearch');
+      const sortSel = document.getElementById('projectSortSelect');
+      const clearBtn = document.getElementById('projectSearchClear');
+      if (input) input.value = '';
+      if (sortSel) sortSel.value = 'newest';
+      if (clearBtn) clearBtn.classList.add('hidden');
+      syncUrlState();
+      renderCategoryFilters();
+      renderProjects();
+    }
+
+    // จำสถานะไว้ใน URL เพื่อให้แชร์ลิงก์เฉพาะหมวด/คำค้นได้
+    function syncUrlState() {
+      try {
+        const params = new URLSearchParams();
+        if (currentSort !== 'newest') params.set('sort', currentSort);
+        const qs = params.toString();
+        history.replaceState(null, '', (qs ? '?' + qs : location.pathname) + location.hash);
+      } catch (e) {}
+    }
+
+    function readUrlState() {
+      try {
+        const params = new URLSearchParams(location.search);
+        if (params.get('sort')) currentSort = params.get('sort');
+      } catch (e) {}
+    }
+
+    function applyCompactView(on, save) {
+      compactView = !!on;
+      const grid = document.getElementById('projectsGrid');
+      const label = document.getElementById('projectViewLabel');
+      const icon = document.querySelector('#projectViewToggle i');
+      if (grid) grid.classList.toggle('is-compact', compactView);
+      if (label) label.textContent = compactView ? 'กะทัดรัด' : 'การ์ด';
+      if (icon) icon.className = compactView ? 'fa-solid fa-list' : 'fa-solid fa-table-cells-large';
+      if (save) { try { localStorage.setItem('cosmic_project_view', compactView ? 'compact' : 'card'); } catch (e) {} }
+    }
+
+    function initProjectControls() {
+      const input = document.getElementById('projectSearch');       // ถูกถอดออกจากหน้าเว็บแล้ว
+      const clearBtn = document.getElementById('projectSearchClear'); // (โค้ดยังอยู่ เผื่ออยากเปิดใช้อีก)
+      const sortSel = document.getElementById('projectSortSelect');
+      const toggle = document.getElementById('projectViewToggle');
+
+      if (input && clearBtn) {
+        input.value = currentSearch;
+        let timer = null;
+        input.addEventListener('input', () => {
+          clearBtn.classList.toggle('hidden', !input.value);
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            currentSearch = input.value;
+            syncUrlState();
+            renderCategoryFilters();
+            renderProjects();
+          }, 200);
+        });
+        clearBtn.classList.toggle('hidden', !input.value);
+      }
+
+      if (input && clearBtn) clearBtn.addEventListener('click', () => {
+        input.value = '';
+        currentSearch = '';
+        clearBtn.classList.add('hidden');
+        syncUrlState();
+        renderCategoryFilters();
+        renderProjects();
+        input.focus();
+      });
+
+      if (sortSel) sortSel.value = currentSort;
+
+      let saved = null;
+      try { saved = localStorage.getItem('cosmic_project_view'); } catch (e) {}
+      applyCompactView(saved === 'compact', false);
+
+      if (toggle) toggle.addEventListener('click', () => {
+        applyCompactView(!compactView, true);
+      });
     }
 
     async function initPortfolio() {
@@ -1094,9 +1232,21 @@
       const filtered = getFilteredProjects();
 
       const countEl = document.getElementById('projectResultCount');
-      if (countEl) countEl.textContent = `แสดง ${filtered.length} จาก ${projects.length} ผลงาน`;
+      if (countEl) {
+        const q = currentSearch.trim();
+        countEl.textContent = `แสดง ${filtered.length} จาก ${projects.length} ผลงาน` +
+          (q ? ` · ค้นหา "${q}"` : '') +
+          (currentFilter !== 'all' ? ` · หมวด ${currentFilter}` : '');
+      }
 
       if (filtered.length === 0) {
+        const hint = document.getElementById('noProjectsHint');
+        if (hint) {
+          const q = currentSearch.trim();
+          hint.textContent = q
+            ? `ไม่พบผลงานที่ตรงกับ "${q}"${currentFilter !== 'all' ? ' ในหมวด ' + currentFilter : ''}`
+            : 'ยังไม่มีข้อมูลผลงานในหมวดหมู่นี้';
+        }
         if (emptyState) emptyState.classList.remove('hidden');
         return;
       } else {
@@ -1110,7 +1260,7 @@
         const title = escapeHtml(project.title);
         const summary = escapeHtml(project.summary);
         const category = escapeHtml(project.category || 'General');
-        const postedAt = formatPostDate(project.id);
+        const postedAt = formatPostDate(project);
         const isLong = (project.summary || '').length > 95;
 
         const hashtags = (project.tags || []).slice(0, 3).map(t =>
@@ -1118,7 +1268,7 @@
         ).join(' ');
 
         const media = project.imageUrl ? `
-          <button type="button" data-action="preview" class="block w-full h-44 bg-black/80 border-y border-pink-500/20 overflow-hidden group/img relative">
+          <button type="button" data-action="preview" class="proj-media block w-full h-44 bg-black/80 border-y border-pink-500/20 overflow-hidden group/img relative">
             <img src="${escapeHtml(project.imageUrl)}" alt="${title}" loading="lazy" class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500 ease-out">
             <div class="absolute inset-0 bg-black/20 group-hover/img:bg-transparent transition flex items-center justify-center">
               <span class="opacity-0 group-hover/img:opacity-100 transition px-2 py-1 rounded-lg bg-black/80 border border-pink-500/40 text-[10px] font-mono text-pink-300">
@@ -1127,7 +1277,7 @@
             </div>
           </button>
         ` : `
-          <div class="h-32 mx-4 my-2 rounded-2xl border border-pink-500/20 bg-gradient-to-br from-pink-500/10 via-black/60 to-black/80 p-3.5 flex items-center gap-3">
+          <div class="proj-media h-32 mx-4 my-2 rounded-2xl border border-pink-500/20 bg-gradient-to-br from-pink-500/10 via-black/60 to-black/80 p-3.5 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-black border border-pink-500/40 text-pink-400 flex items-center justify-center text-sm shrink-0 shadow-[0_0_12px_rgba(255,42,133,0.3)]">
               <i class="fa-solid ${escapeHtml(project.icon || 'fa-code')}"></i>
             </div>
@@ -1166,8 +1316,8 @@
             </header>
 
             <div class="px-4 pb-3">
-              <h3 class="text-sm font-bold font-orbitron text-white leading-snug mb-1 line-clamp-1">${title}</h3>
-              <p data-role="summary" class="text-zinc-300 text-xs font-light leading-relaxed whitespace-pre-line ${isLong ? 'line-clamp-2' : ''}">${summary}</p>
+              <h3 class="text-sm font-bold font-orbitron text-white leading-snug mb-1 line-clamp-1">${highlight(title)}</h3>
+              <p data-role="summary" class="text-zinc-300 text-xs font-light leading-relaxed whitespace-pre-line ${isLong ? 'line-clamp-2' : ''}">${highlight(summary)}</p>
               ${isLong ? `<button type="button" data-action="expand" class="mt-0.5 text-[10px] font-semibold text-pink-400 hover:text-pink-300 transition">ดูเพิ่มเติม...</button>` : ''}
               ${hashtags ? `<div class="flex flex-wrap gap-x-1.5 gap-y-0.5 mt-2">${hashtags}</div>` : ''}
             </div>
@@ -1207,6 +1357,7 @@
 
     function filterProjects(category) {
       currentFilter = category;
+      syncUrlState();
       renderCategoryFilters();
       renderProjects();
     }
@@ -1493,6 +1644,8 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      readUrlState();
+      initProjectControls();
       initPortfolio();
       loadCertificates();
       loadActivities();

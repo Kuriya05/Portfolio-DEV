@@ -79,6 +79,26 @@
     window.localforage.config({ name: 'KuriyaCosmicDB', storeName: 'portfolio_store' });
   }
 
+  /* -- หมวดหมู่ผลงาน ---------------------------------------------------------
+   *  อยากเพิ่ม/แก้/ลบหมวดหมู่ แก้ที่นี่ที่เดียว ทั้งฟอร์มและตัวกรองจะอัปเดตตาม
+   *  name = ค่าที่เก็บลงฐานข้อมูลและโชว์บนหน้าเว็บ, th = คำอธิบายในหน้าแอดมิน
+   *  หมายเหตุ: ช่องหมวดหมู่พิมพ์ชื่อใหม่เองได้ ไม่จำเป็นต้องมีในรายการนี้
+   */
+  var CATEGORIES = [
+    { name: 'AI & Vision',            th: 'ปัญญาประดิษฐ์ & ตรวจจับภาพ' },
+    { name: 'Web Platform',           th: 'เว็บแอปพลิเคชัน' },
+    { name: 'Mobile Application',     th: 'แอปมือถือ' },
+    { name: 'Desktop Application',    th: 'โปรแกรมบนเครื่อง' },
+    { name: 'Database & Backend',     th: 'ฐานข้อมูล & ระบบหลังบ้าน' },
+    { name: 'Data & Analytics',       th: 'วิเคราะห์ข้อมูล & Dashboard' },
+    { name: 'Algo & Trading',         th: 'บอทเทรด & การเงิน' },
+    { name: 'Cybersecurity & Network',th: 'ความมั่นคงปลอดภัย & เครือข่าย' },
+    { name: 'IoT & Embedded',         th: 'อุปกรณ์อัจฉริยะ & เซนเซอร์' },
+    { name: 'Game & Interactive',     th: 'เกม & สื่อโต้ตอบ' },
+    { name: 'Design & Multimedia',    th: 'ออกแบบ & มัลติมีเดีย' },
+    { name: 'Tools & Cloud',          th: 'ซอฟต์แวร์ & เครื่องมือ' }
+  ];
+
   var LOCAL_KEY = {
     projects:     'cosmic_projects_store',
     certificates: 'cosmic_certificates_store',
@@ -118,7 +138,7 @@
 
     var obj = {};
     Object.keys(row || {}).forEach(function (col) {
-      if (col === 'created_at' || col === 'updated_at') return;
+      if (col === 'updated_at') return;   // created_at เก็บไว้ ใช้แสดงวันที่บนหน้าเว็บ
       obj[reverse[col] || col] = row[col];
     });
     if (!Array.isArray(obj.tags))   obj.tags   = obj.tags   ? obj.tags   : [];
@@ -355,6 +375,7 @@
 
   window.CosmicDB = {
     cloud: CLOUD,
+    categories: CATEGORIES,
     bucket: BUCKET,
     client: sb,
     list: list,
