@@ -8,6 +8,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- LocalForage สำหรับจัดเก็บบน IndexedDB ไม่จำกัดขนาด -->
   <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+
+  <!-- Supabase: ฐานข้อมูลจริงบนคลาวด์ (ต้องโหลดก่อน cosmic-db.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="assets/supabase-config.js"></script>
+  <script src="assets/cosmic-db.js"></script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,16 +73,22 @@
       </div>
       
       <h2 class="font-orbitron font-extrabold text-lg text-white tracking-wider mb-1">COMMAND AUTHORIZATION</h2>
-      <p class="text-xs font-mono text-zinc-400 mb-6">ป้อนรหัสผ่านเพื่อปลดล็อกสิทธิ์ควบคุมระบบ</p>
+      <p class="text-xs font-mono text-zinc-400 mb-6" id="authSubtitle">กำลังตรวจสอบระบบ...</p>
       
       <form onsubmit="handleAdminLogin(event)" class="space-y-4 font-mono">
+        <div class="relative hidden" id="authEmailWrap">
+          <input type="email" id="authEmailInput" placeholder="อีเมลแอดมิน" autocomplete="username" class="w-full px-4 py-3.5 rounded-xl bg-black/90 border border-pink-500/50 text-white text-center text-xs font-code focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-500">
+        </div>
         <div class="relative">
-          <input type="password" id="authPassInput" required placeholder="PASSCODE" autocomplete="off" class="w-full px-4 py-3.5 rounded-xl bg-black/90 border border-pink-500/50 text-white text-center text-sm font-code tracking-[0.35em] focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-500">
+          <input type="password" id="authPassInput" required placeholder="PASSCODE" autocomplete="current-password" class="w-full px-4 py-3.5 rounded-xl bg-black/90 border border-pink-500/50 text-white text-center text-sm font-code tracking-[0.35em] focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-500">
         </div>
         <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-black font-bold font-orbitron text-xs uppercase tracking-wider hover:opacity-95 shadow-[0_0_20px_rgba(255,42,133,0.45)] transition-all">
           <i class="fa-solid fa-unlock-keyhole mr-1.5"></i> ACCESS COMMAND
         </button>
       </form>
+
+      <p id="authError" class="hidden mt-4 text-[11px] font-mono text-rose-400 leading-relaxed"></p>
+      <p id="authModeHint" class="mt-4 text-[10px] font-mono leading-relaxed"></p>
 
       <div class="mt-6 pt-5 border-t border-pink-500/20">
         <a href="index.html" class="text-xs font-mono text-zinc-400 hover:text-pink-400 transition flex items-center justify-center gap-2">
@@ -113,6 +124,7 @@
             <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-pink-400"></i>
             <span class="hidden sm:inline">ดูหน้าเว็บจริง</span>
           </a>
+          <span id="cloudBadge" class="hidden"></span>
           <button onclick="handleAdminLogout()" class="px-3.5 py-2 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-300 hover:bg-rose-600 hover:text-white transition flex items-center gap-1.5">
             <i class="fa-solid fa-power-off text-[11px]"></i>
             <span class="hidden sm:inline">ออกจากระบบ</span>
@@ -207,6 +219,10 @@
               <i class="fa-solid fa-award"></i>
               <span>จัดการเกียรติบัตร</span>
             </button>
+            <button onclick="migrateLocalToCloud()" title="ดึงข้อมูลเดิมที่ค้างอยู่ใน IndexedDB ของเบราว์เซอร์เครื่องนี้ ขึ้นฐานข้อมูลบน cloud" class="px-3.5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500 hover:text-black text-xs font-mono flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+              <span>นำเข้าข้อมูลเดิม</span>
+            </button>
             <button onclick="exportDataJSON()" class="px-3.5 py-2.5 rounded-xl bg-black/70 border border-pink-500/30 text-zinc-300 hover:text-white text-xs font-mono flex items-center gap-1.5 transition hover:border-pink-400">
               <i class="fa-solid fa-download text-pink-400 text-xs"></i>
               <span>Backup JSON</span>
@@ -243,11 +259,11 @@
         <div class="pt-4 border-t border-pink-500/20 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-zinc-500 gap-3 relative z-10">
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-database text-pink-400"></i>
-            <span>จัดเก็บบน IndexedDB (High-Capacity Database ไม่จำกัดขนาด)</span>
+            <span id="storageModeText">จัดเก็บบน IndexedDB (เฉพาะเบราว์เซอร์เครื่องนี้)</span>
           </div>
           <button onclick="resetFactoryData()" class="text-rose-400/80 hover:text-rose-300 underline flex items-center gap-1 transition">
             <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>รีเซ็ตโปรเจกต์ทั้งหมดเป็นค่าตั้งต้น</span>
+            <span>ล้างข้อมูลทั้งหมดในระบบ</span>
           </button>
         </div>
       </div>
@@ -446,6 +462,13 @@
             <input type="file" id="actImageFileInput" accept="image/*" multiple onchange="handleActMultipleImages(event)" class="hidden">
           </label>
 
+          <div class="flex items-center gap-2">
+            <input type="url" id="actImageUrlInput" placeholder="หรือวางลิงก์รูปภาพ (https://...)" class="flex-1 px-3 py-2.5 rounded-xl bg-black border border-pink-500/30 text-white text-xs font-code placeholder:text-zinc-600 focus:outline-none focus:border-pink-400">
+            <button type="button" onclick="addActImageByUrl()" class="px-4 py-2.5 rounded-xl bg-pink-500/10 border border-pink-500/40 text-pink-300 hover:bg-pink-500 hover:text-black text-xs font-mono transition whitespace-nowrap">
+              <i class="fa-solid fa-link mr-1"></i> เพิ่มลิงก์
+            </button>
+          </div>
+
           <div id="actImagePreviewGrid" class="flex flex-wrap gap-2 pt-2"></div>
         </div>
 
@@ -586,100 +609,22 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    const ADMIN_PASS = "210148";
-    
-    localforage.config({
-      name: 'KuriyaCosmicDB',
-      storeName: 'portfolio_store'
-    });
+    // รหัสสำรองสำหรับ "โหมด LOCAL" เท่านั้น (ตอนที่ยังไม่ได้ตั้งค่า Supabase)
+    // เมื่อเชื่อม Supabase แล้ว ระบบจะใช้ Auth อีเมล/รหัสผ่านจริงแทน และบรรทัดนี้ถูกข้ามไป
+    const LOCAL_FALLBACK_PASS = "210148";
 
+    // หมายเหตุ: localforage.config() ย้ายไปอยู่ใน assets/cosmic-db.js แล้ว
     const syncChannel = new BroadcastChannel('cosmic_projects_sync');
 
-    const defaultProjects = [
-      {
-        id: 'p-cosmic-1',
-        title: 'ระบบตรวจจับโรคข้าวโพดด้วย AI Vision (Corn Pest Eye)',
-        category: 'AI & Vision',
-        summary: 'ตรวจจับและวิเคราะห์โรคใบไหม้ หนอนเจาะลำต้น และอาการขาดธาตุอาหารของข้าวโพดแบบ Real-time ด้วยโมเดล YOLOv8',
-        tags: ['YOLOv8', 'Python', 'FastAPI', 'OpenCV'],
-        demoUrl: '#',
-        githubUrl: 'https://github.com/Kuriya05',
-        imageUrl: ''
-      },
-      {
-        id: 'p-cosmic-2',
-        title: 'Cosmic Gold & Forex Algorithmic Bot',
-        category: 'Algo & Trading',
-        summary: 'บอทวิเคราะห์แนวรับ-แนวต้านอัตโนมัติบน XAUUSD พร้อมเชื่อมต่อ MetaTrader 5 ส่งแจ้งเตือน Real-time',
-        tags: ['Python', 'MetaTrader 5', 'Algo Engine'],
-        demoUrl: '#',
-        githubUrl: 'https://github.com/Kuriya05',
-        imageUrl: ''
-      },
-      {
-        id: 'p-cosmic-3',
-        title: 'Quantum Next-Gen E-Commerce Portal',
-        category: 'Web Platform',
-        summary: 'แพลตฟอร์มพาณิชย์อิเล็กทรอนิกส์สไตล์ Modern Dark พร้อมแผงควบคุมแอดมินและระบบชำระเงิน',
-        tags: ['Next.js 14', 'React', 'Tailwind', 'PostgreSQL'],
-        demoUrl: '#',
-        githubUrl: 'https://github.com/Kuriya05',
-        imageUrl: ''
-      }
-    ];
+    // ------------------------------------------------------------------
+    //  ไม่มีข้อมูลจำลอง (mock/default) ในโค้ดอีกต่อไป
+    //  ข้อมูลทั้งหมดมาจากฐานข้อมูลจริงผ่าน CosmicDB
+    //  ถ้ามีข้อมูลเดิมค้างในเบราว์เซอร์ ให้กดปุ่ม "นำเข้าข้อมูลเดิม" ในหน้านี้
+    // ------------------------------------------------------------------
 
-    const defaultCertificates = [
-      {
-        id: 'cert-1',
-        title: 'ด้านความมั่นคงปลอดภัยไซเบอร์ ระดับพื้นฐาน (Cybersecurity Foundation Course)',
-        category: 'Cybersecurity & Digital Safety',
-        issuer: 'สกมช. (NCSA)',
-        year: '2026',
-        description: 'ผ่านการอบรมหลักสูตรความมั่นคงปลอดภัยไซเบอร์ระดับพื้นฐาน ผ่านระบบ NCSA e-Learning รวม 21 ชั่วโมง',
-        imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
-      },
-      {
-        id: 'cert-2',
-        title: 'AI + IoT with Scratch/mBlock5 (Coding Thailand 2026)',
-        category: 'AI, IoT & Smart Systems',
-        issuer: 'depa',
-        year: '2026',
-        description: 'ผ่านการอบรมออนไลน์หลักสูตร AI + IoT ภายใต้โครงการ Coding Thailand 2026: AI Inspires the Future',
-        imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
-      },
-      {
-        id: 'cert-3',
-        title: 'LINK Certified Network Cabling for Engineering (LCCE)',
-        category: 'Network Infrastructure & Cabling',
-        issuer: 'LINK ASIA LIMITED',
-        year: '2026',
-        description: 'ผ่านการอบรมและรับรองมาตรฐานหลักสูตรวิศวกรรมระบบสายสัญญาณเครือข่ายคอมพิวเตอร์ตามมาตรฐานสากล',
-        imageUrl: 'https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg'
-      }
-    ];
-
-    const defaultActivities = [
-      {
-        id: 'act-1',
-        title: 'กิจกรรมพัฒนาเว็บไซต์ AI-CS Department Platform',
-        role: 'LEAD DEV',
-        location: 'Maejo University • 2026',
-        icon: 'fa-users-gear',
-        description: 'มีส่วนร่วมในการออกแบบและพัฒนาระบบหน้าบ้าน (Frontend) ของแพลตฟอร์มภาควิชา AI-CS มหาวิทยาลัยแม่โจ้ โดยใช้ Next.js, React และ Tailwind CSS รองรับการแสดงผลทุกอุปกรณ์',
-        tags: ['Team Collaboration', 'Web UI/UX', 'GitHub Branching'],
-        images: ['https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg']
-      },
-      {
-        id: 'act-2',
-        title: 'การแข่งขันประกวดสร้างบอทเทรด Quantitative Trading',
-        role: 'COMPETITION',
-        location: 'Midterm Competition • 2026',
-        icon: 'fa-chart-pie',
-        description: 'เข้าร่วมการแข่งขันพัฒนาโมเดลวิเคราะห์ทิศทางราคาทองคำ H4 Backtest ด้วยอัลกอริทึม MQL5 ประเมินความเสี่ยง Drawdown และสร้างบอทส่งคำสั่งอัตโนมัติ',
-        tags: ['Quant Strategy', 'MQL5 Bot', 'Backtesting'],
-        images: ['https://s.imgz.io/2026/09/22/1000009747d8dddc00d66b7d0f.jpg']
-      }
-    ];
+    function broadcast(type) {
+      try { syncChannel.postMessage({ type: type }); } catch (e) {}
+    }
 
     let projects = [];
     let certificates = [];
@@ -741,33 +686,100 @@
       draw();
     })();
 
-    function checkAuth() {
-      if (sessionStorage.getItem('is_cosmic_admin') === 'true') {
-        document.getElementById('authGate').classList.add('hidden');
-        document.getElementById('adminPanel').classList.remove('hidden');
-        loadAllData();
+    let currentAdminUser = null;
+
+    function setAuthGate(showGate) {
+      document.getElementById('authGate').classList.toggle('hidden', !showGate);
+      document.getElementById('adminPanel').classList.toggle('hidden', showGate);
+    }
+
+    function showAuthError(msg) {
+      const el = document.getElementById('authError');
+      if (!el) return;
+      if (!msg) { el.classList.add('hidden'); el.textContent = ''; return; }
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    function paintAuthMode() {
+      const sub  = document.getElementById('authSubtitle');
+      const hint = document.getElementById('authModeHint');
+      const wrap = document.getElementById('authEmailWrap');
+      if (CosmicDB.cloud) {
+        wrap.classList.remove('hidden');
+        document.getElementById('authEmailInput').required = true;
+        sub.textContent = 'ล็อกอินด้วยบัญชีแอดมินเพื่อปลดล็อกสิทธิ์ควบคุมระบบ';
+        hint.className = 'mt-4 text-[10px] font-mono leading-relaxed text-emerald-400/80';
+        hint.innerHTML = '<i class="fa-solid fa-cloud mr-1"></i> CLOUD MODE &mdash; ข้อมูลเก็บบน Supabase เห็นตรงกันทุกเครื่อง';
       } else {
-        document.getElementById('authGate').classList.remove('hidden');
-        document.getElementById('adminPanel').classList.add('hidden');
+        wrap.classList.add('hidden');
+        document.getElementById('authEmailInput').required = false;
+        sub.textContent = 'ป้อนรหัสผ่านเพื่อปลดล็อกสิทธิ์ควบคุมระบบ';
+        hint.className = 'mt-4 text-[10px] font-mono leading-relaxed text-amber-400/90';
+        hint.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> LOCAL MODE &mdash; ยังไม่ได้ตั้งค่า Supabase<br>ข้อมูลจะอยู่แค่ในเบราว์เซอร์เครื่องนี้ ดูวิธีตั้งค่าที่ไฟล์ SETUP.md';
       }
     }
 
-    function handleAdminLogin(e) {
+    async function checkAuth() {
+      paintAuthMode();
+
+      let authed = false;
+      if (CosmicDB.cloud) {
+        try { currentAdminUser = await CosmicDB.auth.user(); }
+        catch (e) { currentAdminUser = null; }
+        authed = !!currentAdminUser;
+      } else {
+        authed = sessionStorage.getItem('is_cosmic_admin') === 'true';
+      }
+
+      setAuthGate(!authed);
+      paintCloudBadge();
+      if (authed) await loadAllData();
+    }
+
+    async function handleAdminLogin(e) {
       e.preventDefault();
-      const val = document.getElementById('authPassInput').value;
-      if (val === ADMIN_PASS) {
-        sessionStorage.setItem('is_cosmic_admin', 'true');
-        checkAuth();
+      showAuthError('');
+      const passEl = document.getElementById('authPassInput');
+      const pass = passEl.value;
+
+      if (!CosmicDB.cloud) {
+        if (pass === LOCAL_FALLBACK_PASS) {
+          sessionStorage.setItem('is_cosmic_admin', 'true');
+          passEl.value = '';
+          await checkAuth();
+          showToast('🔓 เข้าสู่ศูนย์บัญชาการสำเร็จ! (โหมด LOCAL)');
+        } else {
+          showAuthError('รหัสผ่านไม่ถูกต้อง');
+          passEl.value = '';
+        }
+        return;
+      }
+
+      const email = document.getElementById('authEmailInput').value.trim();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.style.opacity = '0.55';
+      try {
+        currentAdminUser = await CosmicDB.auth.signIn(email, pass);
+        passEl.value = '';
+        await checkAuth();
+        startRealtime();
         showToast('🔓 เข้าสู่ศูนย์บัญชาการสำเร็จ!');
-      } else {
-        showToast('❌ รหัสผ่านไม่ถูกต้อง');
-        document.getElementById('authPassInput').value = '';
+      } catch (err) {
+        showAuthError(CosmicDB.explain(err));
+        passEl.value = '';
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '';
       }
     }
 
-    function handleAdminLogout() {
+    async function handleAdminLogout() {
+      try { if (CosmicDB.cloud) await CosmicDB.auth.signOut(); } catch (e) {}
       sessionStorage.removeItem('is_cosmic_admin');
-      checkAuth();
+      currentAdminUser = null;
+      await checkAuth();
     }
 
     async function loadAllData() {
@@ -776,30 +788,18 @@
       await loadActivities();
     }
 
-    // Projects
+    // ==========================================
+    // PROJECTS SYSTEM
+    // ==========================================
     async function loadProjects() {
       try {
-        let stored = await localforage.getItem('cosmic_projects_store');
-        projects = Array.isArray(stored) && stored.length > 0 ? stored : [...defaultProjects];
-        await localforage.setItem('cosmic_projects_store', projects);
-      } catch (e) {
-        projects = [...defaultProjects];
+        projects = await CosmicDB.list('projects');
+      } catch (err) {
+        projects = [];
+        showToast('❌ โหลดผลงานไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
       renderAdminTable();
       updateDashboardStats();
-    }
-
-    async function saveProjects() {
-      try {
-        await localforage.setItem('cosmic_projects_store', projects);
-        syncChannel.postMessage({ type: 'PROJECTS_UPDATED' });
-        renderAdminTable();
-        updateDashboardStats();
-        return true;
-      } catch (err) {
-        showToast('❌ บันทึกข้อมูลไม่สำเร็จ');
-        return false;
-      }
     }
 
     function updateDashboardStats() {
@@ -879,15 +879,19 @@
       });
     }
 
-    function handleImageFileUpload(e) {
+    async function handleImageFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        setImagePreview(evt.target.result);
-        showToast('✨ อัปโหลดรูปภาพพร้อมบันทึก!');
-      };
-      reader.readAsDataURL(file);
+      try {
+        showToast('🔄 กำลังอัปโหลดรูป...');
+        const url = await CosmicDB.uploadFile(file, 'projects');
+        setImagePreview(url);
+        showToast(CosmicDB.cloud ? '✨ อัปโหลดขึ้น Storage เรียบร้อย!' : '✨ แนบรูปเรียบร้อย (โหมด LOCAL)');
+      } catch (err) {
+        showToast('❌ อัปโหลดรูปไม่สำเร็จ: ' + CosmicDB.explain(err));
+      } finally {
+        e.target.value = '';
+      }
     }
 
     function handleImageUrlChange() {
@@ -942,45 +946,53 @@
     async function handleSaveProject(e) {
       e.preventDefault();
       const editId = document.getElementById('editProjectId').value;
-      const title = document.getElementById('projTitle').value.trim();
-      const category = document.getElementById('projCategory').value;
-      const summary = document.getElementById('projSummary').value.trim();
-      const tags = document.getElementById('projTags').value.split(',').map(s => s.trim()).filter(Boolean);
-      const demoUrl = document.getElementById('projDemoUrl').value.trim() || '#';
-      const githubUrl = document.getElementById('projGithubUrl').value.trim() || '#';
-      const imageUrl = document.getElementById('finalImageData').value || '';
+      const record = {
+        title:     document.getElementById('projTitle').value.trim(),
+        category:  document.getElementById('projCategory').value,
+        summary:   document.getElementById('projSummary').value.trim(),
+        tags:      document.getElementById('projTags').value.split(',').map(s => s.trim()).filter(Boolean),
+        demoUrl:   document.getElementById('projDemoUrl').value.trim() || '#',
+        githubUrl: document.getElementById('projGithubUrl').value.trim() || '#',
+        imageUrl:  document.getElementById('finalImageData').value || ''
+      };
+      if (editId) record.id = editId;
 
-      if (editId) {
-        const index = projects.findIndex(p => String(p.id) === String(editId));
-        if (index !== -1) {
-          projects[index] = { ...projects[index], title, category, summary, tags, demoUrl, githubUrl, imageUrl };
-          await saveProjects();
-          showToast('💾 อัปเดตข้อมูลภารกิจเรียบร้อย!');
-          closeProjectModal();
-        }
-      } else {
-        const newProj = { id: 'p-' + Date.now(), title, category, summary, tags, demoUrl, githubUrl, imageUrl };
-        projects.unshift(newProj);
-        await saveProjects();
-        showToast('🚀 ส่งผลงานใหม่ขึ้นสู่วงโคจรแล้ว!');
+      try {
+        await CosmicDB.save('projects', record);
+        await loadProjects();
+        broadcast('PROJECTS_UPDATED');
         closeProjectModal();
+        showToast(editId ? '💾 อัปเดตข้อมูลภารกิจเรียบร้อย!' : '🚀 ส่งผลงานใหม่ขึ้นสู่วงโคจรแล้ว!');
+      } catch (err) {
+        showToast('❌ บันทึกไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
     }
 
     async function cloneProject(id) {
       const p = projects.find(item => String(item.id) === String(id));
       if (!p) return;
-      const cloned = { ...p, id: 'p-' + Date.now(), title: p.title + ' (Copy)' };
-      projects.unshift(cloned);
-      await saveProjects();
-      showToast('📋 คัดลอกผลงานเรียบร้อย');
+      const cloned = Object.assign({}, p, { title: (p.title || '') + ' (Copy)' });
+      delete cloned.id;
+      delete cloned.sort_order;
+      try {
+        await CosmicDB.save('projects', cloned);
+        await loadProjects();
+        broadcast('PROJECTS_UPDATED');
+        showToast('📋 คัดลอกผลงานเรียบร้อย');
+      } catch (err) {
+        showToast('❌ คัดลอกไม่สำเร็จ: ' + CosmicDB.explain(err));
+      }
     }
 
     async function deleteProject(id) {
-      if (confirm('ยืนยันการลบผลงานนี้ออกจากระบบอย่างถาวร?')) {
-        projects = projects.filter(p => String(p.id) !== String(id));
-        await saveProjects();
+      if (!confirm('ยืนยันการลบผลงานนี้ออกจากระบบอย่างถาวร?')) return;
+      try {
+        await CosmicDB.remove('projects', id);
+        await loadProjects();
+        broadcast('PROJECTS_UPDATED');
         showToast('🗑 ลบข้อมูลเรียบร้อยแล้ว');
+      } catch (err) {
+        showToast('❌ ลบไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
     }
 
@@ -991,27 +1003,13 @@
 
     async function loadActivities() {
       try {
-        let stored = await localforage.getItem('cosmic_activities_store');
-        activities = Array.isArray(stored) && stored.length > 0 ? stored : [...defaultActivities];
-        await localforage.setItem('cosmic_activities_store', activities);
-      } catch(e) {
-        activities = [...defaultActivities];
+        activities = await CosmicDB.list('activities');
+      } catch (err) {
+        activities = [];
+        showToast('❌ โหลดกิจกรรมไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
       renderActivityTable();
       updateDashboardStats();
-    }
-
-    async function saveActivities() {
-      try {
-        await localforage.setItem('cosmic_activities_store', activities);
-        syncChannel.postMessage({ type: 'ACTIVITIES_UPDATED' });
-        renderActivityTable();
-        updateDashboardStats();
-        return true;
-      } catch(err) {
-        showToast('❌ บันทึกกิจกรรมไม่สำเร็จ');
-        return false;
-      }
     }
 
     function openActivityListModal() {
@@ -1099,26 +1097,45 @@
     }
 
     async function deleteActivity(id) {
-      if (confirm('ต้องการลบกิจกรรมนี้ออกจากระบบหรือไม่?')) {
-        activities = activities.filter(a => String(a.id) !== String(id));
-        await saveActivities();
+      if (!confirm('ต้องการลบกิจกรรมนี้ออกจากระบบหรือไม่?')) return;
+      try {
+        await CosmicDB.remove('activities', id);
+        await loadActivities();
+        broadcast('ACTIVITIES_UPDATED');
         showToast('🗑 ลบกิจกรรมเรียบร้อย');
+      } catch (err) {
+        showToast('❌ ลบไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
     }
 
-    function handleActMultipleImages(e) {
+    async function handleActMultipleImages(e) {
       const files = Array.from(e.target.files);
       if (!files.length) return;
 
-      showToast(`🔄 กำลังโหลดรูปภาพ ${files.length} รูป...`);
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          currentActImages.push(evt.target.result);
+      showToast('🔄 กำลังอัปโหลดรูปภาพ ' + files.length + ' รูป...');
+      let ok = 0;
+      for (const file of files) {
+        try {
+          currentActImages.push(await CosmicDB.uploadFile(file, 'activities'));
+          ok++;
           renderActImagePreviews();
-        };
-        reader.readAsDataURL(file);
-      });
+        } catch (err) {
+          showToast('❌ อัปโหลด ' + file.name + ' ไม่สำเร็จ: ' + CosmicDB.explain(err));
+        }
+      }
+      e.target.value = '';
+      if (ok) showToast('✨ อัปโหลดรูปสำเร็จ ' + ok + '/' + files.length + ' รูป');
+    }
+
+    function addActImageByUrl() {
+      const input = document.getElementById('actImageUrlInput');
+      const url = (input.value || '').trim();
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url)) { showToast('⚠️ ลิงก์ต้องขึ้นต้นด้วย http:// หรือ https://'); return; }
+      currentActImages.push(url);
+      input.value = '';
+      renderActImagePreviews();
+      showToast('🔗 เพิ่มรูปจากลิงก์เรียบร้อย');
     }
 
     function renderActImagePreviews() {
@@ -1145,35 +1162,30 @@
     async function handleSaveActivity(e) {
       e.preventDefault();
       const editId = document.getElementById('editActId').value;
-      const title = document.getElementById('actTitle').value.trim();
-      const role = document.getElementById('actRole').value.trim() || 'MEMBER';
-      const location = document.getElementById('actLocation').value.trim() || 'Maejo University';
-      const description = document.getElementById('actDesc').value.trim();
-      const tags = document.getElementById('actTags').value.split(',').map(s => s.trim()).filter(Boolean);
+      const record = {
+        title:       document.getElementById('actTitle').value.trim(),
+        role:        document.getElementById('actRole').value.trim() || 'MEMBER',
+        location:    document.getElementById('actLocation').value.trim() || 'Maejo University',
+        description: document.getElementById('actDesc').value.trim(),
+        tags:        document.getElementById('actTags').value.split(',').map(s => s.trim()).filter(Boolean),
+        images:      currentActImages.slice(),
+        icon:        'fa-users-gear'
+      };
 
       if (editId) {
-        const index = activities.findIndex(a => String(a.id) === String(editId));
-        if (index !== -1) {
-          activities[index] = {
-            ...activities[index],
-            title, role, location, description, tags,
-            images: currentActImages
-          };
-          await saveActivities();
-          showToast('💾 อัปเดตข้อมูลกิจกรรมเรียบร้อย!');
-          closeActivityModal();
-        }
-      } else {
-        const newAct = {
-          id: 'act-' + Date.now(),
-          title, role, location, description, tags,
-          images: currentActImages,
-          icon: 'fa-users-gear'
-        };
-        activities.unshift(newAct);
-        await saveActivities();
-        showToast('🚀 บันทึกกิจกรรมพร้อมรูปภาพเรียบร้อย!');
+        record.id = editId;
+        const prev = activities.find(a => String(a.id) === String(editId));
+        if (prev && prev.icon) record.icon = prev.icon;
+      }
+
+      try {
+        await CosmicDB.save('activities', record);
+        await loadActivities();
+        broadcast('ACTIVITIES_UPDATED');
         closeActivityModal();
+        showToast(editId ? '💾 อัปเดตข้อมูลกิจกรรมเรียบร้อย!' : '🚀 บันทึกกิจกรรมพร้อมรูปภาพเรียบร้อย!');
+      } catch (err) {
+        showToast('❌ บันทึกไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
     }
 
@@ -1182,27 +1194,13 @@
     // ==========================================
     async function loadCertificates() {
       try {
-        let stored = await localforage.getItem('cosmic_certificates_store');
-        certificates = Array.isArray(stored) && stored.length > 0 ? stored : [...defaultCertificates];
-        await localforage.setItem('cosmic_certificates_store', certificates);
-      } catch(e) {
-        certificates = [...defaultCertificates];
+        certificates = await CosmicDB.list('certificates');
+      } catch (err) {
+        certificates = [];
+        showToast('❌ โหลดเกียรติบัตรไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
       renderCertTable();
       updateDashboardStats();
-    }
-
-    async function saveCertificates() {
-      try {
-        await localforage.setItem('cosmic_certificates_store', certificates);
-        syncChannel.postMessage({ type: 'CERTIFICATES_UPDATED' });
-        renderCertTable();
-        updateDashboardStats();
-        return true;
-      } catch(err) {
-        showToast('❌ บันทึกเกียรติบัตรไม่สำเร็จ');
-        return false;
-      }
     }
 
     function openCertListModal() {
@@ -1284,14 +1282,19 @@
       document.getElementById('certFormModal').classList.add('flex');
     }
 
-    function handleCertFileUpload(e) {
+    async function handleCertFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        setCertImagePreview(evt.target.result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        showToast('🔄 กำลังอัปโหลดรูปเกียรติบัตร...');
+        const url = await CosmicDB.uploadFile(file, 'certificates');
+        setCertImagePreview(url);
+        showToast(CosmicDB.cloud ? '✨ อัปโหลดขึ้น Storage เรียบร้อย!' : '✨ แนบรูปเรียบร้อย (โหมด LOCAL)');
+      } catch (err) {
+        showToast('❌ อัปโหลดรูปไม่สำเร็จ: ' + CosmicDB.explain(err));
+      } finally {
+        e.target.value = '';
+      }
     }
 
     function handleCertUrlInput() {
@@ -1315,40 +1318,41 @@
     async function handleSaveCert(e) {
       e.preventDefault();
       const editId = document.getElementById('editCertId').value;
-      const title = document.getElementById('certTitle').value.trim();
-      const issuer = document.getElementById('certIssuer').value.trim();
-      const category = document.getElementById('certCategory').value.trim();
-      const year = document.getElementById('certYear').value.trim() || '2026';
-      const description = document.getElementById('certDesc').value.trim();
-      const imageUrl = document.getElementById('finalCertImageData').value;
+      const record = {
+        title:       document.getElementById('certTitle').value.trim(),
+        issuer:      document.getElementById('certIssuer').value.trim(),
+        category:    document.getElementById('certCategory').value.trim(),
+        year:        document.getElementById('certYear').value.trim() || String(new Date().getFullYear() + 543),
+        description: document.getElementById('certDesc').value.trim(),
+        imageUrl:    document.getElementById('finalCertImageData').value
+      };
 
-      if (!imageUrl) {
+      if (!record.imageUrl) {
         showToast('⚠️ กรุณาอัปโหลดรูปภาพเกียรติบัตร');
         return;
       }
+      if (editId) record.id = editId;
 
-      if (editId) {
-        const index = certificates.findIndex(c => String(c.id) === String(editId));
-        if (index !== -1) {
-          certificates[index] = { ...certificates[index], title, issuer, category, year, description, imageUrl };
-          await saveCertificates();
-          showToast('💾 อัปเดตข้อมูลเกียรติบัตรเรียบร้อย!');
-          closeCertFormModal();
-        }
-      } else {
-        const newCert = { id: 'cert-' + Date.now(), title, issuer, category, year, description, imageUrl };
-        certificates.unshift(newCert);
-        await saveCertificates();
-        showToast('🏆 เพิ่มเกียรติบัตรใหม่เรียบร้อยแล้ว!');
+      try {
+        await CosmicDB.save('certificates', record);
+        await loadCertificates();
+        broadcast('CERTIFICATES_UPDATED');
         closeCertFormModal();
+        showToast(editId ? '💾 อัปเดตข้อมูลเกียรติบัตรเรียบร้อย!' : '🏆 เพิ่มเกียรติบัตรใหม่เรียบร้อยแล้ว!');
+      } catch (err) {
+        showToast('❌ บันทึกไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
     }
 
     async function deleteCert(id) {
-      if (confirm('ต้องการลบเกียรติบัตรนี้ออกจากระบบหรือไม่?')) {
-        certificates = certificates.filter(c => String(c.id) !== String(id));
-        await saveCertificates();
+      if (!confirm('ต้องการลบเกียรติบัตรนี้ออกจากระบบหรือไม่?')) return;
+      try {
+        await CosmicDB.remove('certificates', id);
+        await loadCertificates();
+        broadcast('CERTIFICATES_UPDATED');
         showToast('🗑 ลบเกียรติบัตรเรียบร้อย');
+      } catch (err) {
+        showToast('❌ ลบไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
     }
 
@@ -1367,34 +1371,82 @@
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = async function(evt) {
+      reader.onload = async function (evt) {
         try {
           const parsed = JSON.parse(evt.target.result);
-          if (Array.isArray(parsed)) {
-            projects = parsed;
-            await saveProjects();
-          } else if (parsed && typeof parsed === 'object') {
-            if (parsed.projects) { projects = parsed.projects; await saveProjects(); }
-            if (parsed.certificates) { certificates = parsed.certificates; await saveCertificates(); }
-            if (parsed.activities) { activities = parsed.activities; await saveActivities(); }
-          }
+          const payload = Array.isArray(parsed) ? { projects: parsed } : (parsed || {});
+
+          if (!confirm('การกู้คืนจะเขียนทับข้อมูลเดิมทั้งหมด ดำเนินการต่อหรือไม่?')) return;
+          showToast('🔄 กำลังกู้คืนข้อมูล...');
+
+          if (payload.projects)     await CosmicDB.replaceAll('projects', payload.projects);
+          if (payload.certificates) await CosmicDB.replaceAll('certificates', payload.certificates);
+          if (payload.activities)   await CosmicDB.replaceAll('activities', payload.activities);
+
+          await loadAllData();
+          broadcast('PROJECTS_UPDATED');
           showToast('✅ กู้คืนข้อมูลเข้าระบบเรียบร้อยแล้ว!');
-        } catch(err) {
-          showToast('❌ รูปแบบไฟล์ JSON ไม่ถูกต้อง');
+        } catch (err) {
+          showToast('❌ กู้คืนไม่สำเร็จ: ' + CosmicDB.explain(err));
+        } finally {
+          e.target.value = '';
         }
       };
       reader.readAsText(file);
     }
 
+    // ย้ายข้อมูลเดิมที่ค้างใน IndexedDB ของเบราว์เซอร์เครื่องนี้ ขึ้น Supabase
+    async function migrateLocalToCloud() {
+      if (!CosmicDB.cloud) {
+        showToast('⚠️ ยังไม่ได้ตั้งค่า Supabase — ดูวิธีที่ไฟล์ SETUP.md');
+        return;
+      }
+
+      const local = {
+        projects:     await CosmicDB.readLegacyLocal('projects'),
+        certificates: await CosmicDB.readLegacyLocal('certificates'),
+        activities:   await CosmicDB.readLegacyLocal('activities')
+      };
+      const total = local.projects.length + local.certificates.length + local.activities.length;
+
+      if (!total) {
+        showToast('ℹ️ ไม่พบข้อมูลเดิมในเบราว์เซอร์เครื่องนี้');
+        return;
+      }
+
+      const msg = 'พบข้อมูลเดิมในเครื่องนี้ ' + total + ' รายการ\n' +
+                  '  • ผลงาน ' + local.projects.length + '\n' +
+                  '  • เกียรติบัตร ' + local.certificates.length + '\n' +
+                  '  • กิจกรรม ' + local.activities.length + '\n\n' +
+                  'การนำเข้าจะเขียนทับข้อมูลบน cloud ทั้งหมด ดำเนินการต่อหรือไม่?';
+      if (!confirm(msg)) return;
+
+      try {
+        showToast('🔄 กำลังย้ายข้อมูลขึ้น cloud (รูป base64 จะถูกอัปโหลดขึ้น Storage ให้อัตโนมัติ)...');
+        await CosmicDB.replaceAll('projects', local.projects);
+        await CosmicDB.replaceAll('certificates', local.certificates);
+        await CosmicDB.replaceAll('activities', local.activities);
+        await loadAllData();
+        broadcast('PROJECTS_UPDATED');
+        showToast('✅ ย้ายข้อมูลขึ้น cloud สำเร็จ ' + total + ' รายการ');
+      } catch (err) {
+        showToast('❌ ย้ายข้อมูลไม่สำเร็จ: ' + CosmicDB.explain(err));
+      }
+    }
+
+    // เดิมชื่อ resetFactoryData (คืนค่าข้อมูลจำลอง) -> เปลี่ยนเป็นล้างข้อมูลจริงทั้งหมด
     async function resetFactoryData() {
-      if (confirm('ต้องการรีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นหรือไม่?')) {
-        projects = [...defaultProjects];
-        certificates = [...defaultCertificates];
-        activities = [...defaultActivities];
-        await saveProjects();
-        await saveCertificates();
-        await saveActivities();
-        showToast('🔄 รีเซ็ตข้อมูลกลับสู่ค่าเริ่มต้นเรียบร้อย');
+      if (!confirm('ต้องการลบข้อมูลทั้งหมดในระบบหรือไม่?\n\n⚠️ ย้อนกลับไม่ได้ — แนะนำให้กด Backup JSON เก็บไว้ก่อน')) return;
+      if (!confirm('ยืนยันอีกครั้ง: ลบผลงาน เกียรติบัตร และกิจกรรม ทั้งหมดอย่างถาวร?')) return;
+      try {
+        await CosmicDB.replaceAll('projects', []);
+        await CosmicDB.replaceAll('certificates', []);
+        await CosmicDB.replaceAll('activities', []);
+        await loadAllData();
+        broadcast('PROJECTS_UPDATED');
+        showToast('🧹 ล้างข้อมูลทั้งหมดเรียบร้อย');
+      } catch (err) {
+        showToast('❌ ล้างข้อมูลไม่สำเร็จ: ' + CosmicDB.explain(err));
       }
     }
 
@@ -1409,7 +1461,45 @@
       }, 3000);
     }
 
-    window.addEventListener('DOMContentLoaded', checkAuth);
+    // ---------- สถานะการเชื่อมต่อ + Realtime ----------
+    let realtimeOff = [];
+
+    function paintCloudBadge() {
+      const txt = document.getElementById('storageModeText');
+      if (txt) {
+        txt.textContent = CosmicDB.cloud
+          ? 'จัดเก็บบน Supabase (PostgreSQL + Storage) — ข้อมูลชุดเดียวกันทุกเครื่อง'
+          : 'จัดเก็บบน IndexedDB (เฉพาะเบราว์เซอร์เครื่องนี้ — ยังไม่ได้ตั้งค่า Supabase)';
+      }
+
+      const el = document.getElementById('cloudBadge');
+      if (!el) return;
+      const base = 'hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-mono border ';
+      if (CosmicDB.cloud) {
+        el.className = base + 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300';
+        el.innerHTML = '<i class="fa-solid fa-cloud"></i> CLOUD' +
+                       (currentAdminUser && currentAdminUser.email ? ' // ' + currentAdminUser.email : '');
+        el.title = 'ข้อมูลถูกเก็บบน Supabase';
+      } else {
+        el.className = base + 'bg-amber-500/10 border-amber-500/40 text-amber-300';
+        el.innerHTML = '<i class="fa-solid fa-hard-drive"></i> LOCAL ONLY';
+        el.title = 'ยังไม่ได้ตั้งค่า Supabase — ข้อมูลอยู่แค่ในเบราว์เซอร์เครื่องนี้';
+      }
+    }
+
+    function startRealtime() {
+      realtimeOff.forEach(function (off) { off(); });
+      realtimeOff = [];
+      if (!CosmicDB.cloud) return;
+      realtimeOff.push(CosmicDB.subscribe('projects',     function () { loadProjects(); }));
+      realtimeOff.push(CosmicDB.subscribe('certificates', function () { loadCertificates(); }));
+      realtimeOff.push(CosmicDB.subscribe('activities',   function () { loadActivities(); }));
+    }
+
+    window.addEventListener('DOMContentLoaded', async function () {
+      await checkAuth();
+      startRealtime();
+    });
   </script>
 </body>
 </html>

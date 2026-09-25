@@ -1,0 +1,16 @@
+# Vercel
+.vercel
+
+# ระบบปฏิบัติการ / เอดิเตอร์
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# ไฟล์สำรองข้อมูลที่ export จากหน้าแอดมิน
+kuriya-portfolio-backup-*.json
+
+# หมายเหตุ: assets/supabase-config.js ต้อง commit ขึ้น git ด้วย
+# เพราะเว็บ static ต้องใช้ตอนรันในเบราว์เซอร์ และ anon key ไม่ใช่ความลับ
+# (สิ่งที่ป้องกันข้อมูลคือ RLS ใน supabase-setup.sql)
